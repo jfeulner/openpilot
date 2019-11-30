@@ -657,7 +657,7 @@ bool lkas_rolling_counter = 0;
 
 //TODO: make the frequency / interval adjustable
 //TODO: can we change the frequency on the fly?
-public void ENABLE_LKAS_PUMP() {
+void ENABLE_LKAS_PUMP() {
   //Setup LKAS 20ms timer
   timer_init(TIM12, 15);
   NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
@@ -669,13 +669,13 @@ public void ENABLE_LKAS_PUMP() {
 // }
 
 
-public void SET_STOCK_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
+void SET_STOCK_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
   //this is supposed to create a copy of the struct
   *stock_lkas = *to_send;
   have_stock_lkas = true;
 }
 
-public void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
+void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
   //this is supposed to create a copy of the struct
   *op_lkas = *to_send;
   have_op_lkas = true;
