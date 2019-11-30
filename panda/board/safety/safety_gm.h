@@ -31,7 +31,7 @@ struct sample_t gm_torque_driver;         // last few driver torques measured
 
 
 
-bool lkas_pump_enabled = false;
+//bool lkas_pump_enabled = false;
 bool use_stock_lkas = true;
 CAN_FIFOMailBox_TypeDef *stock_lkas;
 bool have_stock_lkas = false;
@@ -39,14 +39,14 @@ CAN_FIFOMailBox_TypeDef *op_lkas;
 bool have_op_lkas = false;
 bool lkas_rolling_counter = 0;
 
-//TODO: make the frequency / interval adjustable
-//TODO: can we change the frequency on the fly?
-static void ENABLE_LKAS_PUMP(void) {
-  //Setup LKAS 20ms timer
-  timer_init(TIM12, 15);
-  NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
-  lkas_pump_enabled = true;
-}
+// //TODO: make the frequency / interval adjustable
+// //TODO: can we change the frequency on the fly?
+// static void ENABLE_LKAS_PUMP(void) {
+//   //Setup LKAS 20ms timer
+//   timer_init(TIM12, 15);
+//   NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
+//   lkas_pump_enabled = true;
+// }
 
 // public void DISABLE_LKAS_PUMP() {
 //   lkas_pump_enabled = false;
@@ -320,7 +320,7 @@ static void gm_init(int16_t param) {
   UNUSED(param);
   controls_allowed = 0;
 
-  ENABLE_LKAS_PUMP();
+  //ENABLE_LKAS_PUMP();
 }
 
 
@@ -345,7 +345,7 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 
 
 static void gm_lkas_hook(void) {
-  if (!lkas_pump_enabled) return;
+  puts("LKAS fired");
   CAN_FIFOMailBox_TypeDef *to_send;
 
   if (use_stock_lkas) {
@@ -356,7 +356,7 @@ static void gm_lkas_hook(void) {
     to_send = op_lkas;
   }
 
-  //this should somebow be controlled in safety code
+  //this should somehow be controlled in safety code
   lkas_rolling_counter = (lkas_rolling_counter + 1) % 4;
 
   //int rolling_counter = GET_BYTE(to_send, 0) >> 4;
