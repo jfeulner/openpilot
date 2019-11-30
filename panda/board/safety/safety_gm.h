@@ -344,7 +344,7 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 
 
 
-void gm_lkas_hook() {
+static void gm_lkas_hook(void) {
   if (!lkas_pump_enabled) return;
   CAN_FIFOMailBox_TypeDef *to_send;
 
