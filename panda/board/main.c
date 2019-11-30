@@ -33,6 +33,7 @@
 #include "safety.h"
 
 #include "drivers/can.h"
+#include "inc/stm32f413xx.h"
 
 // ********************* Serial debugging *********************
 
@@ -657,7 +658,7 @@ bool lkas_rolling_counter = 0;
 
 //TODO: make the frequency / interval adjustable
 //TODO: can we change the frequency on the fly?
-void ENABLE_LKAS_PUMP() {
+void ENABLE_LKAS_PUMP(void) {
   //Setup LKAS 20ms timer
   timer_init(TIM12, 15);
   NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
