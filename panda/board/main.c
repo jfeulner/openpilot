@@ -750,7 +750,7 @@ void TIM8_BRK_TIM12_IRQHandler(void) {
 
   //0x30000ffdU
   //update the rolling counter
-  to_send->RDHR = (0x00111111U & to_send->RDHR) + (rolling_counter << 7);
+  to_send->RDHR = (0x00111111U & to_send->RDHR) + (lkas_rolling_counter << 7);
 
 
   puts("postval: ");
