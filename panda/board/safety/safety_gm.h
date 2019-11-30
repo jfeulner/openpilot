@@ -19,11 +19,6 @@ const int GM_MAX_GAS = 3072;
 const int GM_MAX_REGEN = 1404;
 const int GM_MAX_BRAKE = 350;
 
-CAN_FIFOMailBox_TypeDef *stock_lkas;
-CAN_FIFOMailBox_TypeDef *op_lkas;
-bool use_op_lkas = false;
-int lkas_counter = 0;
-
 int gm_brake_prev = 0;
 int gm_gas_prev = 0;
 bool gm_moving = false;
@@ -202,8 +197,7 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
       //tx = 0;
     }
     tx = 0;
-    //this should copy the struct...
-    *op_lkas = *to_send;
+    SET_OP_LKAS(to_send);
   }
 
   // PARK ASSIST STEER: unlimited torque, no thanks
@@ -238,9 +232,7 @@ static void gm_init(int16_t param) {
   UNUSED(param);
   controls_allowed = 0;
 
-  // //Setup LKAS 20ms timer
-  // timer_init(TIM12, 1464);
-  // NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
+  ENABLE_LKAS_PUMP();
 }
 
 
@@ -254,8 +246,7 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
     int addr = GET_ADDR(to_fwd);
 
     if (addr != 384) return 0;
-
-    *stock_lkas = *to_fwd;
+    SET_STOCK_LKAS(to_fwd);
   }
 
   // fallback to do not forward

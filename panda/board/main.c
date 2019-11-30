@@ -647,32 +647,119 @@ uint64_t tcnt = 0;
 #define EON_HEARTBEAT_IGNITION_CNT_OFF 2U
 
 
-void TIM8_BRK_TIM12_IRQHandler(void) {
-  if (TIM12->SR == 0) return;
-  uint32_t ts = TIM2->CNT;
-  puts("timer12: ");
-  puth(ts);
+bool lkas_pump_enabled = false;
+bool use_stock_lkas = true;
+CAN_FIFOMailBox_TypeDef *stock_lkas;
+bool have_stock_lkas = false;
+CAN_FIFOMailBox_TypeDef *op_lkas;
+bool have_op_lkas = false;
+bool lkas_rolling_counter = 0;
+
+//TODO: make the frequency / interval adjustable
+//TODO: can we change the frequency on the fly?
+public void ENABLE_LKAS_PUMP() {
+  //Setup LKAS 20ms timer
+  timer_init(TIM12, 15);
+  NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
+  lkas_pump_enabled = true;
+}
+
+// public void DISABLE_LKAS_PUMP() {
+//   lkas_pump_enabled = false;
+// }
+
+
+public void SET_STOCK_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
+  //this is supposed to create a copy of the struct
+  *stock_lkas = *to_send;
+  have_stock_lkas = true;
+}
+
+public void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
+  //this is supposed to create a copy of the struct
+  *op_lkas = *to_send;
+  have_op_lkas = true;
+}
+
+//TODO: this should be defined in safety as it will be different for all cars
+
+void CALCULATE_LKAS_CHECKSUM(CAN_FIFOMailBox_TypeDef *to_send) {
+/*  values = {
+    "LKASteeringCmdActive": lkas_active,
+    "LKASteeringCmd": apply_steer,
+    "RollingCounter": idx,
+    "LKASteeringCmdChecksum": 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ff) - idx
+  }*/
+
+  //0x30 00 0f fd U
+  int rolling_counter = GET_BYTE(to_send, 0) >> 4;
+  int lkas_active = GET_BYTE(to_send, 0) & 8 >> 3;
+  int apply_steer = (GET_BYTE(to_send, 0) & 7 << 8) + GET_BYTE(to_send, 1);
+
+  puts("original Value: ");
+  puth(to_send->RDHR);
   puts("\n");
 
-  // CAN_FIFOMailBox_TypeDef *to_send;
+  puts("rolling_counter: ");
+  puth(rolling_counter);
+  puts("\n");
 
-  // if (use_op_lkas) {
-  //   to_send = op_lkas;
-  // }
-  // else {
-  //   to_send = stock_lkas;
-  // }
+  puts("lkas_active: ");
+  puth(lkas_active);
+  puts("\n");
 
-  // uint32_t vals[4];
-  // vals[0] = 0x00000000U;
-  // vals[1] = 0x10000fffU;
-  // vals[2] = 0x20000ffeU;
-  // vals[3] = 0x30000ffdU;
+  puts("apply_steer: ");
+  puth(apply_steer);
+  puts("\n");
+
+  int checksum = 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ff) - rolling_counter;
+
+  puts("checksum: ");
+  puth(checksum);
+  puts("\n");
+
+  to_send->RDHR = (to_send->RDHR & 0xFFFF0000) + checksum;
+
+  puts("New Value: ");
+  puth(to_send->RDHR);
+  puts("\n");
+
+}
 
 
-  // //TODO: this should send the appropriate zero value... not sure how
-  // if (to_send == NULL) return;
+void TIM8_BRK_TIM12_IRQHandler(void) {
+  if (TIM12->SR == 0) return;
+  if (!lkas_pump_enabled) return;
+  CAN_FIFOMailBox_TypeDef *to_send;
 
+  if (use_stock_lkas) {
+    if (!have_stock_lkas) return;
+    to_send = stock_lkas;
+  } else {
+    if (!have_op_lkas) return;
+    to_send = op_lkas;
+  }
+
+  //this should somebow be controlled in safety code
+  lkas_rolling_counter = (lkas_rolling_counter + 1) % 4;
+
+  //int rolling_counter = GET_BYTE(to_send, 0) >> 4;
+  puts("preval: ");
+  puth(to_send->RDHR);
+  puts("\n");
+
+  //0x30000ffdU
+  //update the rolling counter
+  to_send->RDHR = (0x00111111U & to_send->RDHR) + (rolling_counter << 7);
+
+
+  puts("postval: ");
+  puth(to_send->RDHR);
+  puts("\n");
+
+  CALCULATE_LKAS_CHECKSUM(to_send);
+
+  //can_send(to_send,0);
 
   TIM12->SR = 0;
 }
@@ -822,10 +909,6 @@ int main(void) {
   // 1hz
   timer_init(TIM9, 1464);
   NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
-
-  //Setup LKAS 20ms timer
-  timer_init(TIM12, 50);
-  NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
 
 #ifdef DEBUG
   puts("DEBUG ENABLED\n");
