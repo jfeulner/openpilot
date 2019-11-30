@@ -648,6 +648,7 @@ uint64_t tcnt = 0;
 
 
 void TIM8_BRK_TIM12_IRQHandler(void) {
+  puts("tim12 called");
   if (TIM12->SR == 0) return;
 
   uint32_t ts = TIM2->CNT;
