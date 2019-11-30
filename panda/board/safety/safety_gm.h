@@ -22,6 +22,7 @@ const int GM_MAX_BRAKE = 350;
 CAN_FIFOMailBox_TypeDef *stock_lkas;
 CAN_FIFOMailBox_TypeDef *op_lkas;
 bool use_op_lkas = false;
+int lkas_counter = 0;
 
 int gm_brake_prev = 0;
 int gm_gas_prev = 0;
@@ -230,9 +231,33 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   return tx;
 }
 
-void TIM1_BRK_TIM9_IRQHandler(void) {
+void TIM8_BRK_TIM12_IRQHandler(void) {
+  if (TIM12->SR == 0) return;
+
+  uint32_t ts = TIM2->CNT;
+  puth(ts);
+
+  // CAN_FIFOMailBox_TypeDef *to_send;
+
+  // if (use_op_lkas) {
+  //   to_send = op_lkas;
+  // }
+  // else {
+  //   to_send = stock_lkas;
+  // }
+
+  // uint32_t vals[4];
+  // vals[0] = 0x00000000U;
+  // vals[1] = 0x10000fffU;
+  // vals[2] = 0x20000ffeU;
+  // vals[3] = 0x30000ffdU;
 
 
+  // //TODO: this should send the appropriate zero value... not sure how
+  // if (to_send == NULL) return;
+
+
+  TIM12->SR = 0;
 }
 
 
@@ -240,7 +265,30 @@ static void gm_init(int16_t param) {
   UNUSED(param);
   controls_allowed = 0;
 
+  //Setup LKAS 20ms timer
+  timer_init(TIM12, 1464);
+  NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
 }
+
+
+static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
+
+  int bus_fwd = -1;
+  if (bus_num == 0) {
+    bus_fwd = 2;  // Camera CAN
+  }
+  if (bus_num == 2) {
+    int addr = GET_ADDR(to_fwd);
+
+    if (addr != 384) return 0;
+
+    *stock_lkas = *to_fwd;
+  }
+
+  // fallback to do not forward
+  return bus_fwd;
+}
+
 
 
 const safety_hooks gm_hooks = {
@@ -248,5 +296,5 @@ const safety_hooks gm_hooks = {
   .rx = gm_rx_hook,
   .tx = gm_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
-  .fwd = default_fwd_hook,
+  .fwd = gm_fwd_hook,
 };
