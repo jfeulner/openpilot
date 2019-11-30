@@ -19,6 +19,10 @@ const int GM_MAX_GAS = 3072;
 const int GM_MAX_REGEN = 1404;
 const int GM_MAX_BRAKE = 350;
 
+CAN_FIFOMailBox_TypeDef *stock_lkas;
+CAN_FIFOMailBox_TypeDef *op_lkas;
+bool use_op_lkas = false;
+
 int gm_brake_prev = 0;
 int gm_gas_prev = 0;
 bool gm_moving = false;
@@ -196,6 +200,9 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
       to_send->RDHR = vals[rolling_counter];
       //tx = 0;
     }
+    tx = 0;
+    //this should copy the struct...
+    *op_lkas = *to_send;
   }
 
   // PARK ASSIST STEER: unlimited torque, no thanks
@@ -223,9 +230,16 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   return tx;
 }
 
+void TIM1_BRK_TIM9_IRQHandler(void) {
+
+
+}
+
+
 static void gm_init(int16_t param) {
   UNUSED(param);
   controls_allowed = 0;
+
 }
 
 
