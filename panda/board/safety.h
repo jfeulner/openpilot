@@ -56,6 +56,7 @@ int safety_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 }
 
 void safety_lkas_hook(void) {
+  puts("safety_lkas_hook");
   current_hooks->lkas();
 }
 
