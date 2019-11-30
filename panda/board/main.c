@@ -646,6 +646,38 @@ uint64_t tcnt = 0;
 #define EON_HEARTBEAT_IGNITION_CNT_ON 5U
 #define EON_HEARTBEAT_IGNITION_CNT_OFF 2U
 
+
+void TIM8_BRK_TIM12_IRQHandler(void) {
+  if (TIM12->SR == 0) return;
+
+  uint32_t ts = TIM2->CNT;
+  puth(ts);
+
+  // CAN_FIFOMailBox_TypeDef *to_send;
+
+  // if (use_op_lkas) {
+  //   to_send = op_lkas;
+  // }
+  // else {
+  //   to_send = stock_lkas;
+  // }
+
+  // uint32_t vals[4];
+  // vals[0] = 0x00000000U;
+  // vals[1] = 0x10000fffU;
+  // vals[2] = 0x20000ffeU;
+  // vals[3] = 0x30000ffdU;
+
+
+  // //TODO: this should send the appropriate zero value... not sure how
+  // if (to_send == NULL) return;
+
+
+  TIM12->SR = 0;
+}
+
+
+
 // called once per second
 // cppcheck-suppress unusedFunction ; used in headers not included in cppcheck
 void TIM1_BRK_TIM9_IRQHandler(void) {
@@ -789,6 +821,10 @@ int main(void) {
   // 1hz
   timer_init(TIM9, 1464);
   NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
+
+  //Setup LKAS 20ms timer
+  timer_init(TIM12, 500);
+  NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
 
 #ifdef DEBUG
   puts("DEBUG ENABLED\n");
