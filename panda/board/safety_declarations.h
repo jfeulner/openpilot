@@ -31,6 +31,7 @@ typedef void (*rx_hook)(CAN_FIFOMailBox_TypeDef *to_push);
 typedef int (*tx_hook)(CAN_FIFOMailBox_TypeDef *to_send);
 typedef int (*tx_lin_hook)(int lin_num, uint8_t *data, int len);
 typedef int (*fwd_hook)(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd);
+typedef int (*lkas_hook)(void);
 
 typedef struct {
   safety_hook_init init;
@@ -38,6 +39,7 @@ typedef struct {
   tx_hook tx;
   tx_lin_hook tx_lin;
   fwd_hook fwd;
+  lkas_hook lkas;
 } safety_hooks;
 
 // This can be set by the safety hooks.
