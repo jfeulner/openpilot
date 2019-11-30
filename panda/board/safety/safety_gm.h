@@ -29,6 +29,94 @@ int gm_desired_torque_last = 0;
 uint32_t gm_ts_last = 0;
 struct sample_t gm_torque_driver;         // last few driver torques measured
 
+
+
+bool lkas_pump_enabled = false;
+bool use_stock_lkas = true;
+CAN_FIFOMailBox_TypeDef *stock_lkas;
+bool have_stock_lkas = false;
+CAN_FIFOMailBox_TypeDef *op_lkas;
+bool have_op_lkas = false;
+bool lkas_rolling_counter = 0;
+
+//TODO: make the frequency / interval adjustable
+//TODO: can we change the frequency on the fly?
+static void ENABLE_LKAS_PUMP(void) {
+  //Setup LKAS 20ms timer
+  timer_init(TIM12, 15);
+  NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
+  lkas_pump_enabled = true;
+}
+
+// public void DISABLE_LKAS_PUMP() {
+//   lkas_pump_enabled = false;
+// }
+
+
+static void SET_STOCK_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
+  //this is supposed to create a copy of the struct
+  *stock_lkas = *to_send;
+  have_stock_lkas = true;
+}
+
+static void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
+  //this is supposed to create a copy of the struct
+  *op_lkas = *to_send;
+  have_op_lkas = true;
+}
+
+//TODO: this should be defined in safety as it will be different for all cars
+
+static void CALCULATE_LKAS_CHECKSUM(CAN_FIFOMailBox_TypeDef *to_send) {
+/*  values = {
+    "LKASteeringCmdActive": lkas_active,
+    "LKASteeringCmd": apply_steer,
+    "RollingCounter": idx,
+    "LKASteeringCmdChecksum": 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ff) - idx
+  }*/
+
+  //0x30 00 0f fd U
+  int rolling_counter = GET_BYTE(to_send, 0) >> 4;
+  int lkas_active = GET_BYTE(to_send, 0) & 8 >> 3;
+  int apply_steer = (GET_BYTE(to_send, 0) & 7 << 8) + GET_BYTE(to_send, 1);
+
+  puts("original Value: ");
+  puth(to_send->RDHR);
+  puts("\n");
+
+  puts("rolling_counter: ");
+  puth(rolling_counter);
+  puts("\n");
+
+  puts("lkas_active: ");
+  puth(lkas_active);
+  puts("\n");
+
+  puts("apply_steer: ");
+  puth(apply_steer);
+  puts("\n");
+
+  int checksum = 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ff) - rolling_counter;
+
+  puts("checksum: ");
+  puth(checksum);
+  puts("\n");
+
+  to_send->RDHR = (to_send->RDHR & 0xFFFF0000) + checksum;
+
+  puts("New Value: ");
+  puth(to_send->RDHR);
+  puts("\n");
+
+}
+
+
+
+
+
+
+
+
 static void gm_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   int bus_number = GET_BUS(to_push);
   int addr = GET_ADDR(to_push);
@@ -253,85 +341,6 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   return bus_fwd;
 }
 
-
-bool lkas_pump_enabled = false;
-bool use_stock_lkas = true;
-CAN_FIFOMailBox_TypeDef *stock_lkas;
-bool have_stock_lkas = false;
-CAN_FIFOMailBox_TypeDef *op_lkas;
-bool have_op_lkas = false;
-bool lkas_rolling_counter = 0;
-
-//TODO: make the frequency / interval adjustable
-//TODO: can we change the frequency on the fly?
-void ENABLE_LKAS_PUMP(void) {
-  //Setup LKAS 20ms timer
-  timer_init(TIM12, 15);
-  NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
-  lkas_pump_enabled = true;
-}
-
-// public void DISABLE_LKAS_PUMP() {
-//   lkas_pump_enabled = false;
-// }
-
-
-void SET_STOCK_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
-  //this is supposed to create a copy of the struct
-  *stock_lkas = *to_send;
-  have_stock_lkas = true;
-}
-
-void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
-  //this is supposed to create a copy of the struct
-  *op_lkas = *to_send;
-  have_op_lkas = true;
-}
-
-//TODO: this should be defined in safety as it will be different for all cars
-
-void CALCULATE_LKAS_CHECKSUM(CAN_FIFOMailBox_TypeDef *to_send) {
-/*  values = {
-    "LKASteeringCmdActive": lkas_active,
-    "LKASteeringCmd": apply_steer,
-    "RollingCounter": idx,
-    "LKASteeringCmdChecksum": 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ff) - idx
-  }*/
-
-  //0x30 00 0f fd U
-  int rolling_counter = GET_BYTE(to_send, 0) >> 4;
-  int lkas_active = GET_BYTE(to_send, 0) & 8 >> 3;
-  int apply_steer = (GET_BYTE(to_send, 0) & 7 << 8) + GET_BYTE(to_send, 1);
-
-  puts("original Value: ");
-  puth(to_send->RDHR);
-  puts("\n");
-
-  puts("rolling_counter: ");
-  puth(rolling_counter);
-  puts("\n");
-
-  puts("lkas_active: ");
-  puth(lkas_active);
-  puts("\n");
-
-  puts("apply_steer: ");
-  puth(apply_steer);
-  puts("\n");
-
-  int checksum = 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ff) - rolling_counter;
-
-  puts("checksum: ");
-  puth(checksum);
-  puts("\n");
-
-  to_send->RDHR = (to_send->RDHR & 0xFFFF0000) + checksum;
-
-  puts("New Value: ");
-  puth(to_send->RDHR);
-  puts("\n");
-
-}
 
 
 
