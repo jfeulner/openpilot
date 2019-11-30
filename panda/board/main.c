@@ -648,11 +648,11 @@ uint64_t tcnt = 0;
 
 
 void TIM8_BRK_TIM12_IRQHandler(void) {
-  puts("tim12 called");
   if (TIM12->SR == 0) return;
-
   uint32_t ts = TIM2->CNT;
+  puts("timer12: ");
   puth(ts);
+  puts("\n");
 
   // CAN_FIFOMailBox_TypeDef *to_send;
 
@@ -824,7 +824,7 @@ int main(void) {
   NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
 
   //Setup LKAS 20ms timer
-  timer_init(TIM12, 500);
+  timer_init(TIM12, 50);
   NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
 
 #ifdef DEBUG
