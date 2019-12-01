@@ -32,12 +32,12 @@ struct sample_t gm_torque_driver;         // last few driver torques measured
 
 
 //bool lkas_pump_enabled = false;
-bool use_stock_lkas = true;
+//bool use_stock_lkas = true;
 CAN_FIFOMailBox_TypeDef *stock_lkas;
 bool have_stock_lkas = false;
 CAN_FIFOMailBox_TypeDef *op_lkas;
 bool have_op_lkas = false;
-bool lkas_rolling_counter = 0;
+int lkas_rolling_counter = 0;
 
 // //TODO: make the frequency / interval adjustable
 // //TODO: can we change the frequency on the fly?
@@ -348,7 +348,7 @@ static void gm_lkas_hook(void) {
   puts("LKAS fired");
   CAN_FIFOMailBox_TypeDef *to_send;
 
-  if (use_stock_lkas) {
+  if (!controls_allowed) {
     if (!have_stock_lkas) return;
     to_send = stock_lkas;
   } else {
