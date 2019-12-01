@@ -55,9 +55,9 @@ int safety_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   return current_hooks->fwd(bus_num, to_fwd);
 }
 
-int safety_lkas_hook(CAN_FIFOMailBox_TypeDef *to_send) {
+CAN_FIFOMailBox_TypeDef * safety_lkas_hook(void) {
   puts("safety_lkas_hook\n");
-  return current_hooks->lkas(to_send);
+  return current_hooks->lkas();
 }
 
 typedef struct {

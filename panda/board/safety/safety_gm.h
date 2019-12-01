@@ -332,7 +332,6 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   }
   if (bus_num == 2) {
     int addr = GET_ADDR(to_fwd);
-
     if (addr != 384) return 0;
     SET_STOCK_LKAS(to_fwd);
   }
@@ -344,14 +343,15 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 
 
 //TODO this should check for stalling and fall back to 0
-static int gm_lkas_hook(CAN_FIFOMailBox_TypeDef *to_send) {
+static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   puts("gm_lkas_hook\n");
+  CAN_FIFOMailBox_TypeDef *to_send = NULL;
 
   if (!controls_allowed) {
-    if (!have_stock_lkas) return 0;
+    if (!have_stock_lkas) return to_send;
     to_send = stock_lkas;
   } else {
-    if (!have_op_lkas) return 0;
+    if (!have_op_lkas) return to_send;
     to_send = op_lkas;
   }
 
@@ -373,7 +373,7 @@ static int gm_lkas_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   puts("\n");
 
   CALCULATE_LKAS_CHECKSUM(to_send);
-  return 1;
+  return to_send;
 }
 
 

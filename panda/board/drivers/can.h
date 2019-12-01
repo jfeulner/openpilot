@@ -421,10 +421,14 @@ void CAN3_RX0_IRQHandler(void) { can_rx(2); }
 void CAN3_SCE_IRQHandler(void) { can_sce(CAN3); }
 
 
-void lkas_send(CAN_FIFOMailBox_TypeDef *to_push, uint8_t bus_number) {
-  if (safety_lkas_hook(to_push) != 0) {
+void lkas_send(void) {
+  puts("lkas_send\n");
+  uint8_t bus_number = 0;
+  CAN_FIFOMailBox_TypeDef *to_push = safety_lkas_hook();
+  if (to_push != NULL) {
+    puts("lkas_send trying to send\n");
     if (bus_number < BUS_MAX) {
-      // add CAN packet to send queue
+      // add CAN packet to send queuesend
       // bus number isn't passed through
       to_push->RDTR &= 0xF;
       if ((bus_number == 3U) && (can_num_lookup[3] == 0xFFU)) {

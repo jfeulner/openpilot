@@ -13,7 +13,7 @@ struct lookup_t {
 
 void safety_rx_hook(CAN_FIFOMailBox_TypeDef *to_push);
 int safety_tx_hook(CAN_FIFOMailBox_TypeDef *to_send);
-int safety_lkas_hook(CAN_FIFOMailBox_TypeDef *to_send);
+CAN_FIFOMailBox_TypeDef * safety_lkas_hook(void);
 int safety_tx_lin_hook(int lin_num, uint8_t *data, int len);
 uint32_t get_ts_elapsed(uint32_t ts, uint32_t ts_last);
 int to_signed(int d, int bits);
@@ -32,7 +32,7 @@ typedef void (*rx_hook)(CAN_FIFOMailBox_TypeDef *to_push);
 typedef int (*tx_hook)(CAN_FIFOMailBox_TypeDef *to_send);
 typedef int (*tx_lin_hook)(int lin_num, uint8_t *data, int len);
 typedef int (*fwd_hook)(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd);
-typedef int (*lkas_hook)(CAN_FIFOMailBox_TypeDef *to_send);
+typedef CAN_FIFOMailBox_TypeDef * (*lkas_hook)(void);
 
 typedef struct {
   safety_hook_init init;
