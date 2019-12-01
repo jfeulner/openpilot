@@ -77,7 +77,7 @@ static void CALCULATE_LKAS_CHECKSUM(CAN_FIFOMailBox_TypeDef *to_send) {
 
   //0x30 00 0f fd U
   int rolling_counter = GET_BYTE(to_send, 0) >> 4;
-  int lkas_active = GET_BYTE(to_send, 0) & 8 >> 3;
+  int lkas_active = (GET_BYTE(to_send, 0) & 8) >> 3;
   int apply_steer = (GET_BYTE(to_send, 0) & 7 << 8) + GET_BYTE(to_send, 1);
 
   puts("original Value: ");
