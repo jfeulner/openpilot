@@ -96,13 +96,13 @@ static void CALCULATE_LKAS_CHECKSUM(CAN_FIFOMailBox_TypeDef *to_send) {
   puth(apply_steer);
   puts("\n");
 
-  int checksum = 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ff) - rolling_counter;
+  int checksum = 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ffU) - rolling_counter;
 
   puts("checksum: ");
   puth(checksum);
   puts("\n");
 
-  to_send->RDHR = (to_send->RDHR & 0xFFFF0000) + checksum;
+  to_send->RDHR = (to_send->RDHR & 0xFFFF0000U) + checksum;
 
   puts("New Value: ");
   puth(to_send->RDHR);
@@ -343,7 +343,7 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 
 
 
-
+//TODO this should check for stalling and fall back to 0
 static void gm_lkas_hook(void) {
   puts("LKAS fired");
   CAN_FIFOMailBox_TypeDef *to_send;
@@ -375,7 +375,7 @@ static void gm_lkas_hook(void) {
 
   CALCULATE_LKAS_CHECKSUM(to_send);
 
-  //can_send(to_send,0);
+  can_send(to_send,0);
 }
 
 
