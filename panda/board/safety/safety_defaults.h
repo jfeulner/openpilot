@@ -27,8 +27,9 @@ static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   return -1;
 }
 
-static void default_lkas_hook(void) {
-  return;
+static int default_lkas_hook(CAN_FIFOMailBox_TypeDef *to_send) {
+  UNUSED(to_send);
+  return false;
 }
 
 const safety_hooks nooutput_hooks = {
