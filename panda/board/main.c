@@ -651,7 +651,8 @@ uint64_t tcnt = 0;
 
 void TIM8_BRK_TIM12_IRQHandler(void) {
   if (TIM12->SR == 0) return;
-  lkas_send(NULL, 0);
+  puts("TIM8_BRK_TIM12_IRQHandler\n");
+  if (1==0) lkas_send(NULL, 0);
   TIM12->SR = 0;
 }
 
