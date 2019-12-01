@@ -56,7 +56,7 @@ int safety_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 }
 
 int safety_lkas_hook(CAN_FIFOMailBox_TypeDef *to_send) {
-  puts("safety_lkas_hook");
+  puts("safety_lkas_hook\n");
   return current_hooks->lkas(to_send);
 }
 

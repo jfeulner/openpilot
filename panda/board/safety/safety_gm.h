@@ -345,7 +345,7 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 
 //TODO this should check for stalling and fall back to 0
 static int gm_lkas_hook(CAN_FIFOMailBox_TypeDef *to_send) {
-  puts("LKAS fired");
+  puts("gm_lkas_hook\n");
 
   if (!controls_allowed) {
     if (!have_stock_lkas) return 0;
