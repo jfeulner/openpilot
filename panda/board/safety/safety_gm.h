@@ -283,7 +283,7 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
       to_send->RDHR = vals[rolling_counter];
       //tx = 0;
     }
-    tx = 0;
+    //tx = 0;
     SET_OP_LKAS(to_send);
   }
 
