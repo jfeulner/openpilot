@@ -79,6 +79,7 @@ static void CALCULATE_LKAS_CHECKSUM(CAN_FIFOMailBox_TypeDef *to_send) {
   int rolling_counter = GET_BYTE(to_send, 0) >> 4;
   int lkas_active = (GET_BYTE(to_send, 0) & 8) >> 3;
   int apply_steer = (GET_BYTE(to_send, 0) & 7 << 8) + GET_BYTE(to_send, 1);
+  int checksum = 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ffU) - rolling_counter;
 
   puts("original Value: ");
   puth(to_send->RDHR);
@@ -95,8 +96,6 @@ static void CALCULATE_LKAS_CHECKSUM(CAN_FIFOMailBox_TypeDef *to_send) {
   puts("apply_steer: ");
   puth(apply_steer);
   puts("\n");
-
-  int checksum = 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ffU) - rolling_counter;
 
   puts("checksum: ");
   puth(checksum);
@@ -347,32 +346,32 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   puts("gm_lkas_hook\n");
   CAN_FIFOMailBox_TypeDef *to_send = NULL;
 
-  if (!controls_allowed) {
-    if (!have_stock_lkas) return to_send;
-    to_send = stock_lkas;
-  } else {
-    if (!have_op_lkas) return to_send;
-    to_send = op_lkas;
-  }
+  // if (!controls_allowed) {
+  //   if (!have_stock_lkas) return to_send;
+  //   to_send = stock_lkas;
+  // } else {
+  //   if (!have_op_lkas) return to_send;
+  //   to_send = op_lkas;
+  // }
 
-  //this should somehow be controlled in safety code
-  lkas_rolling_counter = (lkas_rolling_counter + 1) % 4;
+  // //this should somehow be controlled in safety code
+  // lkas_rolling_counter = (lkas_rolling_counter + 1) % 4;
 
-  //int rolling_counter = GET_BYTE(to_send, 0) >> 4;
-  puts("preval: ");
-  puth(to_send->RDHR);
-  puts("\n");
+  // //int rolling_counter = GET_BYTE(to_send, 0) >> 4;
+  // puts("preval: ");
+  // puth(to_send->RDHR);
+  // puts("\n");
 
-  //0x30000ffdU
-  //update the rolling counter
-  to_send->RDHR = (0x00111111U & to_send->RDHR) + (lkas_rolling_counter << 7);
+  // //0x30000ffdU
+  // //update the rolling counter
+  // to_send->RDHR = (0x00111111U & to_send->RDHR) + (lkas_rolling_counter << 7);
 
 
-  puts("postval: ");
-  puth(to_send->RDHR);
-  puts("\n");
+  // puts("postval: ");
+  // puth(to_send->RDHR);
+  // puts("\n");
 
-  CALCULATE_LKAS_CHECKSUM(to_send);
+  // CALCULATE_LKAS_CHECKSUM(to_send);
   return to_send;
 }
 
