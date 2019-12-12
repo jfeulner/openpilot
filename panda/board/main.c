@@ -651,7 +651,7 @@ uint64_t tcnt = 0;
 
 void TIM8_BRK_TIM12_IRQHandler(void) {
   if (TIM12->SR == 0) return;
-  puts("TIM8_BRK_TIM12_IRQHandler\n");
+  //puts("TIM8_BRK_TIM12_IRQHandler\n");
   lkas_send();
   TIM12->SR = 0;
 }
@@ -802,8 +802,8 @@ int main(void) {
   timer_init(TIM9, 1464);
   NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
   //Timer for LKAS pump
-  timer_init(TIM12, 15);
-  NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
+  //timer_init(TIM12, 15);
+  //NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
 
 #ifdef DEBUG
   puts("DEBUG ENABLED\n");
