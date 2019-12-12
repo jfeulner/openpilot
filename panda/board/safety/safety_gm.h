@@ -67,47 +67,47 @@ static void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
 
 //TODO: this should be defined in safety as it will be different for all cars
 
-static void CALCULATE_LKAS_CHECKSUM(CAN_FIFOMailBox_TypeDef *to_send) {
-/*  values = {
-    "LKASteeringCmdActive": lkas_active,
-    "LKASteeringCmd": apply_steer,
-    "RollingCounter": idx,
-    "LKASteeringCmdChecksum": 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ff) - idx
-  }*/
+// static void CALCULATE_LKAS_CHECKSUM(CAN_FIFOMailBox_TypeDef *to_send) {
+// /*  values = {
+//     "LKASteeringCmdActive": lkas_active,
+//     "LKASteeringCmd": apply_steer,
+//     "RollingCounter": idx,
+//     "LKASteeringCmdChecksum": 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ff) - idx
+//   }*/
 
-  //0x30 00 0f fd U
-  int rolling_counter = GET_BYTE(to_send, 0) >> 4;
-  int lkas_active = (GET_BYTE(to_send, 0) & 8) >> 3;
-  int apply_steer = (GET_BYTE(to_send, 0) & 7 << 8) + GET_BYTE(to_send, 1);
-  int checksum = 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ffU) - rolling_counter;
+//   //0x30 00 0f fd U
+//   int rolling_counter = GET_BYTE(to_send, 0) >> 4;
+//   int lkas_active = (GET_BYTE(to_send, 0) & 8) >> 3;
+//   int apply_steer = (GET_BYTE(to_send, 0) & 7 << 8) + GET_BYTE(to_send, 1);
+//   int checksum = 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ffU) - rolling_counter;
 
-  puts("original Value: ");
-  puth(to_send->RDHR);
-  puts("\n");
+//   puts("original Value: ");
+//   puth(to_send->RDHR);
+//   puts("\n");
 
-  puts("rolling_counter: ");
-  puth(rolling_counter);
-  puts("\n");
+//   puts("rolling_counter: ");
+//   puth(rolling_counter);
+//   puts("\n");
 
-  puts("lkas_active: ");
-  puth(lkas_active);
-  puts("\n");
+//   puts("lkas_active: ");
+//   puth(lkas_active);
+//   puts("\n");
 
-  puts("apply_steer: ");
-  puth(apply_steer);
-  puts("\n");
+//   puts("apply_steer: ");
+//   puth(apply_steer);
+//   puts("\n");
 
-  puts("checksum: ");
-  puth(checksum);
-  puts("\n");
+//   puts("checksum: ");
+//   puth(checksum);
+//   puts("\n");
 
-  to_send->RDHR = (to_send->RDHR & 0xFFFF0000U) + checksum;
+//   to_send->RDHR = (to_send->RDHR & 0xFFFF0000U) + checksum;
 
-  puts("New Value: ");
-  puth(to_send->RDHR);
-  puts("\n");
+//   puts("New Value: ");
+//   puth(to_send->RDHR);
+//   puts("\n");
 
-}
+// }
 
 
 
@@ -324,7 +324,6 @@ static void gm_init(int16_t param) {
 
 
 static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
-
   int bus_fwd = -1;
   if (bus_num == 0) {
     bus_fwd = 2;  // Camera CAN
