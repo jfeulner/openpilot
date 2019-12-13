@@ -382,5 +382,5 @@ const safety_hooks gm_hooks = {
   .tx = gm_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .fwd = gm_fwd_hook,
-  .lkas = gm_lkas_hook
+  .lkas = default_lkas_hook
 };

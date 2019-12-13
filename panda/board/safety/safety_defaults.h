@@ -66,4 +66,5 @@ const safety_hooks alloutput_hooks = {
   .tx = alloutput_tx_hook,
   .tx_lin = alloutput_tx_lin_hook,
   .fwd = default_fwd_hook,
+  .lkas = default_lkas_hook
 };
