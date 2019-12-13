@@ -651,7 +651,9 @@ uint64_t tcnt = 0;
 
 void TIM5_IRQHandler(void) {
   if (TIM5->SR == 0) return;
-  puts("TIM5_IRQHandler\n");
+  puts("TIM5_IRQHandler: ");
+  puth(TIM2->CNT);
+  puts("\n");
   lkas_send();
   TIM5->SR = 0;
 }
@@ -770,7 +772,12 @@ int main(void) {
   TIM2->PSC = 48-1;
   TIM2->CR1 = TIM_CR1_CEN;
   TIM2->EGR = TIM_EGR_UG;
+
+  TIM5->PSC = 480-1;
+  TIM5->CR1 = TIM_CR1_CEN;
+  TIM5->EGR = TIM_EGR_UG;
   // use TIM2->CNT to read
+
 
   // default to silent mode to prevent issues with Ford
   // hardcode a specific safety mode if you want to force the panda to be in a specific mode
@@ -802,7 +809,7 @@ int main(void) {
   timer_init(TIM9, 1464);
   NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
   //Timer for LKAS pump
-  timer_init(TIM5, 15);
+  //timer_init(TIM5, 15);
   NVIC_EnableIRQ(TIM5_IRQn);
 
 #ifdef DEBUG
