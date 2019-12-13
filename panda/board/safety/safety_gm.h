@@ -43,8 +43,8 @@ int lkas_rolling_counter = 0;
 // //TODO: can we change the frequency on the fly?
 // static void ENABLE_LKAS_PUMP(void) {
 //   //Setup LKAS 20ms timer
-//   timer_init(TIM12, 15);
-//   NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
+//   timer_init(TIM5, 15);
+//   NVIC_EnableIRQ(TIM5_IRQn);
 //   lkas_pump_enabled = true;
 // }
 
