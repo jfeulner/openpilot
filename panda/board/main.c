@@ -649,9 +649,9 @@ uint64_t tcnt = 0;
 
 
 
-void TIM6_DAC_IRQHandler(void) {
+void TIM7_IRQHandler(void) {
   if (TIM6->SR == 0) return;
-  puts("TIM6_DAC_IRQHandler: ");
+  puts("TIM7_IRQHandler: ");
   puth(TIM2->CNT);
   puts("\n");
   lkas_send();
@@ -805,8 +805,8 @@ int main(void) {
   timer_init(TIM9, 1464);
   NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
   //Timer for LKAS pump
-  timer_init(TIM6, 15);
-  NVIC_EnableIRQ(TIM6_DAC_IRQn);
+  timer_init(TIM7, 15);
+  NVIC_EnableIRQ(TIM7_IRQn);
 
 #ifdef DEBUG
   puts("DEBUG ENABLED\n");
