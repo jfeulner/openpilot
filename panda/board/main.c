@@ -651,7 +651,7 @@ uint64_t tcnt = 0;
 
 void TIM5_IRQHandler(void) {
   if (TIM5->SR == 0) return;
-  //puts("TIM5_IRQHandler\n");
+  puts("TIM5_IRQHandler\n");
   lkas_send();
   TIM5->SR = 0;
 }
