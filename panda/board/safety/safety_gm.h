@@ -33,9 +33,9 @@ struct sample_t gm_torque_driver;         // last few driver torques measured
 
 //bool lkas_pump_enabled = false;
 //bool use_stock_lkas = true;
-CAN_FIFOMailBox_TypeDef *stock_lkas;
+CAN_FIFOMailBox_TypeDef *stock_lkas = NULL;
 bool have_stock_lkas = false;
-CAN_FIFOMailBox_TypeDef *op_lkas;
+CAN_FIFOMailBox_TypeDef *op_lkas = NULL;
 bool have_op_lkas = false;
 int lkas_rolling_counter = 0;
 
@@ -65,7 +65,6 @@ static void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
   have_op_lkas = true;
 }
 
-//TODO: this should be defined in safety as it will be different for all cars
 
 // static void CALCULATE_LKAS_CHECKSUM(CAN_FIFOMailBox_TypeDef *to_send) {
 // /*  values = {
