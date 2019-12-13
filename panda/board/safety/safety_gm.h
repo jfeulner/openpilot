@@ -346,10 +346,10 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   CAN_FIFOMailBox_TypeDef *to_send = NULL;
 
   if (!controls_allowed) {
-    if (!have_stock_lkas) return to_send;
+    if (!have_stock_lkas) return NULL;
     to_send = stock_lkas;
   } else {
-    if (!have_op_lkas) return to_send;
+    if (!have_op_lkas) return NULL;
     to_send = op_lkas;
   }
 
@@ -384,6 +384,7 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   puth(to_send->RDHR);
   puts("\n");
 
+  return to_send;
   // //0x30000ffdU
   // //update the rolling counter
   //to_send->RDHR = (0x00111111U & to_send->RDHR) + (lkas_rolling_counter << 7);
