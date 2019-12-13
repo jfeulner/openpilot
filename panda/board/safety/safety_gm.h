@@ -282,7 +282,7 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
       to_send->RDHR = vals[rolling_counter];
       //tx = 0;
     }
-    //tx = 0;
+    tx = 0;
     SET_OP_LKAS(to_send);
   }
 
@@ -343,27 +343,50 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   puts("gm_lkas_hook\n");
   return NULL;
-  //CAN_FIFOMailBox_TypeDef *to_send = NULL;
+  CAN_FIFOMailBox_TypeDef *to_send = NULL;
 
-  // if (!controls_allowed) {
-  //   if (!have_stock_lkas) return to_send;
-  //   to_send = stock_lkas;
-  // } else {
-  //   if (!have_op_lkas) return to_send;
-  //   to_send = op_lkas;
-  // }
+  if (!controls_allowed) {
+    if (!have_stock_lkas) return to_send;
+    to_send = stock_lkas;
+  } else {
+    if (!have_op_lkas) return to_send;
+    to_send = op_lkas;
+  }
 
+  puts("preval: ");
+  puth(to_send->RDHR);
+  puts("\n");
+
+//Thanks Andrew C
   // //this should somehow be controlled in safety code
-  // lkas_rolling_counter = (lkas_rolling_counter + 1) % 4;
+  lkas_rolling_counter = (lkas_rolling_counter + 1) % 4;
 
-  // //int rolling_counter = GET_BYTE(to_send, 0) >> 4;
-  // puts("preval: ");
-  // puth(to_send->RDHR);
-  // puts("\n");
+   // Replacement rolling counter 
+    uint32_t newidx = lkas_rolling_counter;
+    
+    // Pull out LKA Steering CMD data and swap endianness (not including rolling counter)
+    uint32_t dataswap = ((to_send->RDLR << 8) & 0x0F00U) | ((to_send->RDLR >> 8) &0xFFU);
+
+    // Compute Checksum
+    uint32_t checksum = (0x1000 - dataswap - newidx) & 0x0fff;
+    
+    //Swap endianness of checksum back to what GM expects
+    uint32_t checksumswap = (checksum >> 8) | ((checksum << 8) & 0xFF00U);
+    
+    // Merge the rewritten checksum back into the BxCAN frame RDLR
+    to_send->RDLR &= 0x0000FFFF;
+    to_send->RDLR |= (checksumswap << 16);
+
+
+
+  //int rolling_counter = GET_BYTE(to_send, 0) >> 4;
+  puts("postval: ");
+  puth(to_send->RDHR);
+  puts("\n");
 
   // //0x30000ffdU
   // //update the rolling counter
-  // to_send->RDHR = (0x00111111U & to_send->RDHR) + (lkas_rolling_counter << 7);
+  //to_send->RDHR = (0x00111111U & to_send->RDHR) + (lkas_rolling_counter << 7);
 
 
   // puts("postval: ");
