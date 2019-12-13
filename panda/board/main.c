@@ -650,12 +650,12 @@ uint64_t tcnt = 0;
 
 
 void TIM7_IRQHandler(void) {
-  if (TIM6->SR == 0) return;
+  if (TIM7->SR == 0) return;
   puts("TIM7_IRQHandler: ");
   puth(TIM2->CNT);
   puts("\n");
   lkas_send();
-  TIM6->SR = 0;
+  TIM7->SR = 0;
 }
 
 
