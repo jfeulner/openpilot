@@ -425,7 +425,7 @@ void lkas_send(void) {
   puts("lkas_send\n");
   uint8_t bus_number = 0;
   CAN_FIFOMailBox_TypeDef *to_push = safety_lkas_hook();
-  if (to_push != NULL) {
+  if (*to_push != NULL) {
     puts("lkas_send trying to send\n");
     if (bus_number < BUS_MAX) {
       // add CAN packet to send queuesend
