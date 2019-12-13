@@ -650,14 +650,14 @@ uint64_t tcnt = 0;
 
 
 void TIM7_IRQHandler(void) {
-  if (TIM7->SR == 0) return;
-  puts("TIM7_IRQHandler: ");
-  puth(TIM2->CNT);
-  puts("\n");
-  lkas_send();
+  if (TIM7->SR != 0) {
+    puts("TIM7_IRQHandler: ");
+    puth(TIM2->CNT);
+    puts("\n");
+    if (1==0) lkas_send();
+  }
   TIM7->SR = 0;
 }
-
 
 
 // called once per second
