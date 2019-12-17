@@ -33,9 +33,9 @@ struct sample_t gm_torque_driver;         // last few driver torques measured
 
 //bool lkas_pump_enabled = false;
 //bool use_stock_lkas = true;
-CAN_FIFOMailBox_TypeDef *stock_lkas = NULL;
+CAN_FIFOMailBox_TypeDef stock_lkas;
 bool have_stock_lkas = false;
-CAN_FIFOMailBox_TypeDef *op_lkas = NULL;
+CAN_FIFOMailBox_TypeDef op_lkas;
 bool have_op_lkas = false;
 int lkas_rolling_counter = 0;
 
@@ -54,14 +54,18 @@ int lkas_rolling_counter = 0;
 
 
 static void SET_STOCK_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
-  //this is supposed to create a copy of the struct
-  *stock_lkas = *to_send;
+  stock_lkas.RIR = to_send->RIR;
+  stock_lkas.RDTR = to_send->RDTR;
+  stock_lkas.RDLR = to_send->RDLR;
+  stock_lkas.RDHR = to_send->RDHR;
   have_stock_lkas = true;
 }
 
 static void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
-  //this is supposed to create a copy of the struct
-  *op_lkas = *to_send;
+  op_lkas.RIR = to_send->RIR;
+  op_lkas.RDTR = to_send->RDTR;
+  op_lkas.RDLR = to_send->RDLR;
+  op_lkas.RDHR = to_send->RDHR;
   have_op_lkas = true;
 }
 
@@ -317,8 +321,6 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 static void gm_init(int16_t param) {
   UNUSED(param);
   controls_allowed = 0;
-
-  //ENABLE_LKAS_PUMP();
 }
 
 
@@ -347,10 +349,10 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
 
   if (!controls_allowed) {
     if (!have_stock_lkas) return NULL;
-    to_send = stock_lkas;
+    to_send = &stock_lkas;
   } else {
     if (!have_op_lkas) return NULL;
-    to_send = op_lkas;
+    to_send = &op_lkas;
   }
 
   puts("preval: ");
