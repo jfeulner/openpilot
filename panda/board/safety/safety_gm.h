@@ -33,9 +33,9 @@ struct sample_t gm_torque_driver;         // last few driver torques measured
 
 //bool lkas_pump_enabled = false;
 //bool use_stock_lkas = true;
-CAN_FIFOMailBox_TypeDef stock_lkas;
+CAN_FIFOMailBox_TypeDef * stock_lkas;
 bool have_stock_lkas = false;
-CAN_FIFOMailBox_TypeDef op_lkas;
+CAN_FIFOMailBox_TypeDef * op_lkas;
 bool have_op_lkas = false;
 int lkas_rolling_counter = 0;
 
@@ -54,18 +54,20 @@ int lkas_rolling_counter = 0;
 
 
 static void SET_STOCK_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
-  stock_lkas.RIR = to_send->RIR;
-  stock_lkas.RDTR = to_send->RDTR;
-  stock_lkas.RDLR = to_send->RDLR;
-  stock_lkas.RDHR = to_send->RDHR;
+  stock_lkas = to_send;
+  // stock_lkas.RIR = to_send->RIR;
+  // stock_lkas.RDTR = to_send->RDTR;
+  // stock_lkas.RDLR = to_send->RDLR;
+  // stock_lkas.RDHR = to_send->RDHR;
   have_stock_lkas = true;
 }
 
 static void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
-  op_lkas.RIR = to_send->RIR;
-  op_lkas.RDTR = to_send->RDTR;
-  op_lkas.RDLR = to_send->RDLR;
-  op_lkas.RDHR = to_send->RDHR;
+  op_lkas = to_send;
+  // op_lkas.RIR = to_send->RIR;
+  // op_lkas.RDTR = to_send->RDTR;
+  // op_lkas.RDLR = to_send->RDLR;
+  // op_lkas.RDHR = to_send->RDHR;
   have_op_lkas = true;
 }
 
@@ -283,7 +285,7 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
     if (violation) {
       //Replace payload with appropriate zero value for expected rolling counter
-      to_send->RDHR = vals[rolling_counter];
+      to_send->RDLR = vals[rolling_counter];
       //tx = 0;
     }
     tx = 0;
@@ -344,55 +346,63 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 //TODO this should check for stalling and fall back to 0
 static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   puts("gm_lkas_hook\n");
-  CAN_FIFOMailBox_TypeDef *to_send = NULL;
+  CAN_FIFOMailBox_TypeDef to_send;
 
   if (!controls_allowed) {
     if (!have_stock_lkas) return NULL;
-    to_send = &stock_lkas;
+    puts("using stock lkas\n");
+    to_send.RIR = stock_lkas->RIR;
+    to_send.RDTR = stock_lkas->RDTR;
+    to_send.RDLR = stock_lkas->RDLR;
+    to_send.RDHR = stock_lkas->RDHR;
   } else {
     if (!have_op_lkas) return NULL;
-    to_send = &op_lkas;
+    puts("using OP lkas\n");
+    to_send.RIR = op_lkas->RIR;
+    to_send.RDTR = op_lkas->RDTR;
+    to_send.RDLR = op_lkas->RDLR;
+    to_send.RDHR = op_lkas->RDHR;
   }
 
   puts("preval: ");
-  puth(to_send->RDHR);
+  puth(to_send.RDLR);
   puts("\n");
 
 //Thanks Andrew C
   // //this should somehow be controlled in safety code
   lkas_rolling_counter = (lkas_rolling_counter + 1) % 4;
 
-   // Replacement rolling counter 
-    uint32_t newidx = lkas_rolling_counter;
-    
-    // Pull out LKA Steering CMD data and swap endianness (not including rolling counter)
-    uint32_t dataswap = ((to_send->RDLR << 8) & 0x0F00U) | ((to_send->RDLR >> 8) &0xFFU);
+  // Replacement rolling counter 
+  uint32_t newidx = lkas_rolling_counter;
+  
+  // Pull out LKA Steering CMD data and swap endianness (not including rolling counter)
+  uint32_t dataswap = ((to_send.RDLR << 8) & 0x0F00U) | ((to_send.RDLR >> 8) &0xFFU);
 
-    // Compute Checksum
-    uint32_t checksum = (0x1000 - dataswap - newidx) & 0x0fff;
-    
-    //Swap endianness of checksum back to what GM expects
-    uint32_t checksumswap = (checksum >> 8) | ((checksum << 8) & 0xFF00U);
-    
-    // Merge the rewritten checksum back into the BxCAN frame RDLR
-    to_send->RDLR &= 0x0000FFFF;
-    to_send->RDLR |= (checksumswap << 16);
+  // Compute Checksum
+  uint32_t checksum = (0x1000 - dataswap - newidx) & 0x0fff;
+  
+  //Swap endianness of checksum back to what GM expects
+  uint32_t checksumswap = (checksum >> 8) | ((checksum << 8) & 0xFF00U);
+  
+  // Merge the rewritten checksum back into the BxCAN frame RDLR
+  to_send.RDLR &= 0x0000FFFF;
+  to_send.RDLR |= (checksumswap << 16);
 
 
 
   //int rolling_counter = GET_BYTE(to_send, 0) >> 4;
   puts("postval: ");
-  puth(to_send->RDHR);
+  puth(to_send.RDLR);
   puts("\n");
 
-  return to_send;
+  return &to_send;
   // //0x30000ffdU
   // //update the rolling counter
-  //to_send->RDHR = (0x00111111U & to_send->RDHR) + (lkas_rolling_counter << 7);
+  //to_send->RDLR = (0x00111111U & to_send->RDLR) + (lkas_rolling_counter << 7);
 
 
   // puts("postval: ");
-  // puth(to_send->RDHR);
+  // puth(to_send->RDLR);
   // puts("\n");
 
   // CALCULATE_LKAS_CHECKSUM(to_send);
