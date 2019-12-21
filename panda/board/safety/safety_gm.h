@@ -364,15 +364,20 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
     lkas_to_send.RDHR = op_lkas->RDHR;
   }
 
-  puts("preval: ");
+  puts("Pre RDLR: ");
   puth(lkas_to_send.RDLR);
-  puts(" ");
+  puts(" RDHR: ");
   puth(lkas_to_send.RDHR);
   puts("\n");
 
+  lkas_rolling_counter = (lkas_rolling_counter + 1) % 4;
+
+  //update the rolling counter
+  lkas_to_send->RDLR = (0x00111111U & to_send->RDLR) + (lkas_rolling_counter << 7);
+
 //Thanks Andrew C
   // //this should somehow be controlled in safety code
-  lkas_rolling_counter = (lkas_rolling_counter + 1) % 4;
+
 
   // Replacement rolling counter 
   uint32_t newidx = lkas_rolling_counter;
@@ -393,10 +398,11 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
 
 
   //int rolling_counter = GET_BYTE(to_send, 0) >> 4;
-  puts("postval: ");
+  puts("Post RDLR: ");
   puth(lkas_to_send.RDLR);
-  puts(" ");
+  puts(" RDHR: ");
   puth(lkas_to_send.RDHR);
+  puts("\n");
 
   return &lkas_to_send;
   // //0x30000ffdU
