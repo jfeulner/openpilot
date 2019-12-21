@@ -348,17 +348,29 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   puts("gm_lkas_hook\n");
   //CAN_FIFOMailBox_TypeDef lkas_to_send;
 
+
+
   if (!controls_allowed) {
     if (!have_stock_lkas) return NULL;
     puts("using stock lkas\n");
-    lkas_to_send.RIR = stock_lkas->RIR;
+    lkas_to_send.RIR = 0U;
+    lkas_to_send.RDTR = 0U;
+    lkas_to_send.RDLR = 0U;
+    lkas_to_send.RDHR = 0U;
+
+    lkas_to_send.RIR = stock_lkas->RIR | 1;
     lkas_to_send.RDTR = stock_lkas->RDTR;
     lkas_to_send.RDLR = stock_lkas->RDLR;
     lkas_to_send.RDHR = stock_lkas->RDHR;
   } else {
     if (!have_op_lkas) return NULL;
     puts("using OP lkas\n");
-    lkas_to_send.RIR = op_lkas->RIR;
+    lkas_to_send.RIR = 0U;
+    lkas_to_send.RDTR = 0U;
+    lkas_to_send.RDLR = 0U;
+    lkas_to_send.RDHR = 0U;
+
+    lkas_to_send.RIR = op_lkas->RIR | 1;
     lkas_to_send.RDTR = op_lkas->RDTR;
     lkas_to_send.RDLR = op_lkas->RDLR;
     lkas_to_send.RDHR = op_lkas->RDHR;
