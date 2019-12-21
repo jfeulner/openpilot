@@ -55,7 +55,7 @@ int safety_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   return current_hooks->fwd(bus_num, to_fwd);
 }
 
-volatile CAN_FIFOMailBox_TypeDef * safety_lkas_hook(void) {
+CAN_FIFOMailBox_TypeDef * safety_lkas_hook(void) {
   return current_hooks->lkas();
 }
 

@@ -27,7 +27,7 @@ static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   return -1;
 }
 
-static volatile CAN_FIFOMailBox_TypeDef * default_lkas_hook(void) {
+static CAN_FIFOMailBox_TypeDef * default_lkas_hook(void) {
   puts("default_lkas_hook\n");
   return NULL;
 }

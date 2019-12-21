@@ -424,7 +424,7 @@ void CAN3_SCE_IRQHandler(void) { can_sce(CAN3); }
 void lkas_send(void) {
   puts("lkas_send\n");
   uint8_t bus_number = 0U;
-  volatile CAN_FIFOMailBox_TypeDef *to_push = safety_lkas_hook();
+  CAN_FIFOMailBox_TypeDef *to_push = safety_lkas_hook();
   puts("got hook response\n");
   if (to_push != NULL) {
     puts("lkas_send trying to send\n");
