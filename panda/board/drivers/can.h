@@ -101,6 +101,7 @@ bool can_push(can_ring *q, CAN_FIFOMailBox_TypeDef *elem) {
     #ifdef DEBUG
       puts("can_push failed!\n");
     #endif
+    puts("can_push failed!\n");
   }
   return ret;
 }
