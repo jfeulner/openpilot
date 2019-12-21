@@ -389,6 +389,10 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
 
   lkas_rolling_counter = (lkas_rolling_counter + 1) % 4;
 
+  puts("Rolling Counter: ");
+  puth(lkas_rolling_counter);
+  puts("\n");
+
   //update the rolling counter
   current_lkas.RDLR = (0x00111111U & current_lkas.RDLR) + (lkas_rolling_counter << 7);
 
