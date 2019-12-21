@@ -366,6 +366,8 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
 
   puts("preval: ");
   puth(lkas_to_send.RDLR);
+  puts(" ");
+  puth(lkas_to_send.RDHR);
   puts("\n");
 
 //Thanks Andrew C
@@ -393,7 +395,8 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   //int rolling_counter = GET_BYTE(to_send, 0) >> 4;
   puts("postval: ");
   puth(lkas_to_send.RDLR);
-  puts("\n");
+  puts(" ");
+  puth(lkas_to_send.RDHR);
 
   return &lkas_to_send;
   // //0x30000ffdU
