@@ -33,10 +33,10 @@ struct sample_t gm_torque_driver;         // last few driver torques measured
 CAN_FIFOMailBox_TypeDef current_lkas;
 //bool lkas_pump_enabled = false;
 //bool use_stock_lkas = true;
-CAN_FIFOMailBox_TypeDef stock_lkas;
-bool have_stock_lkas = false;
-CAN_FIFOMailBox_TypeDef op_lkas;
-bool have_op_lkas = false;
+volatile CAN_FIFOMailBox_TypeDef stock_lkas;
+volatile bool have_stock_lkas = false;
+volatile CAN_FIFOMailBox_TypeDef op_lkas;
+volatile bool have_op_lkas = false;
 volatile int lkas_rolling_counter = 0;
 
 // //TODO: make the frequency / interval adjustable
