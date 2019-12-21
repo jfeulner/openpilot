@@ -30,7 +30,7 @@ uint32_t gm_ts_last = 0;
 struct sample_t gm_torque_driver;         // last few driver torques measured
 
 
-
+CAN_FIFOMailBox_TypeDef current_lkas;
 //bool lkas_pump_enabled = false;
 //bool use_stock_lkas = true;
 CAN_FIFOMailBox_TypeDef stock_lkas;
@@ -353,30 +353,44 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 //TODO this should check for stalling and fall back to 0
 static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   puts("gm_lkas_hook\n");
-  CAN_FIFOMailBox_TypeDef * to_send;
-
   //TODO: maybe we copy it again?
 
   if (!controls_allowed) {
     if (!have_stock_lkas) return NULL;
     puts("using stock lkas\n");
-    to_send = &stock_lkas;
+    current_lkas.RIR = 0;
+    current_lkas.RDTR = 0;
+    current_lkas.RDLR = 0;
+    current_lkas.RDHR = 0;
+
+    current_lkas.RIR = stock_lkas.RIR;
+    current_lkas.RDTR = stock_lkas.RDTR;
+    current_lkas.RDLR = stock_lkas.RDLR;
+    current_lkas.RDHR = stock_lkas.RDHR;
   } else {
     if (!have_op_lkas) return NULL;
     puts("using OP lkas\n");
-    to_send = &op_lkas;
+    current_lkas.RIR = 0;
+    current_lkas.RDTR = 0;
+    current_lkas.RDLR = 0;
+    current_lkas.RDHR = 0;
+
+    current_lkas.RIR = op_lkas.RIR;
+    current_lkas.RDTR = op_lkas.RDTR;
+    current_lkas.RDLR = op_lkas.RDLR;
+    current_lkas.RDHR = op_lkas.RDHR;
   }
 
   puts("Pre RDLR: ");
-  puth(to_send->RDLR);
+  puth(current_lkas.RDLR);
   puts(" RDHR: ");
-  puth(to_send->RDHR);
+  puth(current_lkas.RDHR);
   puts("\n");
 
   lkas_rolling_counter = (lkas_rolling_counter + 1) % 4;
 
   //update the rolling counter
-  to_send->RDLR = (0x00111111U & to_send->RDLR) + (lkas_rolling_counter << 7);
+  current_lkas.RDLR = (0x00111111U & current_lkas.RDLR) + (lkas_rolling_counter << 7);
 
 //Thanks Andrew C
   // //this should somehow be controlled in safety code
@@ -386,7 +400,7 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   uint32_t newidx = lkas_rolling_counter;
   
   // Pull out LKA Steering CMD data and swap endianness (not including rolling counter)
-  uint32_t dataswap = ((to_send->RDLR << 8) & 0x0F00U) | ((to_send->RDLR >> 8) &0xFFU);
+  uint32_t dataswap = ((current_lkas.RDLR << 8) & 0x0F00U) | ((current_lkas.RDLR >> 8) &0xFFU);
 
   // Compute Checksum
   uint32_t checksum = (0x1000 - dataswap - newidx) & 0x0fff;
@@ -395,19 +409,19 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   uint32_t checksumswap = (checksum >> 8) | ((checksum << 8) & 0xFF00U);
   
   // Merge the rewritten checksum back into the BxCAN frame RDLR
-  to_send->RDLR &= 0x0000FFFF;
-  to_send->RDLR |= (checksumswap << 16);
+  current_lkas.RDLR &= 0x0000FFFF;
+  current_lkas.RDLR |= (checksumswap << 16);
 
 
 
   //int rolling_counter = GET_BYTE(to_send, 0) >> 4;
   puts("Post RDLR: ");
-  puth(to_send->RDLR);
+  puth(current_lkas.RDLR);
   puts(" RDHR: ");
-  puth(to_send->RDHR);
+  puth(current_lkas.RDHR);
   puts("\n");
 
-  return to_send;
+  return &current_lkas;
   // //0x30000ffdU
   // //update the rolling counter
   //to_send->RDLR = (0x00111111U & to_send->RDLR) + (lkas_rolling_counter << 7);
