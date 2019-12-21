@@ -30,14 +30,14 @@ uint32_t gm_ts_last = 0;
 struct sample_t gm_torque_driver;         // last few driver torques measured
 
 
-CAN_FIFOMailBox_TypeDef current_lkas;
+volatile CAN_FIFOMailBox_TypeDef current_lkas;
 //bool lkas_pump_enabled = false;
 //bool use_stock_lkas = true;
-CAN_FIFOMailBox_TypeDef stock_lkas;
-bool have_stock_lkas = false;
-CAN_FIFOMailBox_TypeDef op_lkas;
-bool have_op_lkas = false;
-int lkas_rolling_counter = 0;
+volatile CAN_FIFOMailBox_TypeDef stock_lkas;
+volatile bool have_stock_lkas = false;
+volatile CAN_FIFOMailBox_TypeDef op_lkas;
+volatile bool have_op_lkas = false;
+volatile int lkas_rolling_counter = 0;
 
 // //TODO: make the frequency / interval adjustable
 // //TODO: can we change the frequency on the fly?
@@ -353,7 +353,6 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 //TODO this should check for stalling and fall back to 0
 static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   puts("gm_lkas_hook\n");
-  //TODO: maybe we copy it again?
 
   if (!controls_allowed) {
     if (!have_stock_lkas) return NULL;
