@@ -362,7 +362,7 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
     current_lkas.RDLR = 0;
     current_lkas.RDHR = 0;
 
-    current_lkas.RIR = stock_lkas.RIR;
+    current_lkas.RIR = stock_lkas.RIR | 1;
     current_lkas.RDTR = stock_lkas.RDTR;
     current_lkas.RDLR = stock_lkas.RDLR;
     current_lkas.RDHR = stock_lkas.RDHR;
@@ -374,7 +374,7 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
     current_lkas.RDLR = 0;
     current_lkas.RDHR = 0;
 
-    current_lkas.RIR = op_lkas.RIR;
+    current_lkas.RIR = op_lkas.RIR | 1;
     current_lkas.RDTR = op_lkas.RDTR;
     current_lkas.RDLR = op_lkas.RDLR;
     current_lkas.RDHR = op_lkas.RDHR;
