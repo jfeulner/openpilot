@@ -35,8 +35,10 @@ CAN_FIFOMailBox_TypeDef current_lkas;
 //bool use_stock_lkas = true;
 volatile CAN_FIFOMailBox_TypeDef stock_lkas;
 volatile bool have_stock_lkas = false;
+volatile bool sent_stock_lkas = false;
 volatile CAN_FIFOMailBox_TypeDef op_lkas;
 volatile bool have_op_lkas = false;
+volatile bool sent_op_lkas = false;
 volatile int lkas_rolling_counter = 0;
 
 // //TODO: make the frequency / interval adjustable
@@ -64,6 +66,7 @@ static void SET_STOCK_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
   stock_lkas.RDLR = to_send->RDLR;
   stock_lkas.RDHR = to_send->RDHR;
   have_stock_lkas = true;
+  sent_stock_lkas = false;
 }
 
 static void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
@@ -77,6 +80,7 @@ static void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
   op_lkas.RDLR = to_send->RDLR;
   op_lkas.RDHR = to_send->RDHR;
   have_op_lkas = true;
+  sent_op_lkas = false;
 }
 
 
@@ -353,6 +357,17 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 
 //TODO this should check for stalling and fall back to 0
 static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
+  //todo: consider making the timer run at 2x the expected frequency so we actually capture everything
+  //todo: need to consider the implications of "dropping" payloads on steering. Could we capture an array of values and somehow average them?
+  uint32_t vals[4];
+  vals[0] = 0x00000000U;
+  vals[1] = 0x10000fffU;
+  vals[2] = 0x20000ffeU;
+  vals[3] = 0x30000ffdU;
+
+  volatile bool is_sent = false;
+  bool use_stock = true;
+
   puts("gm_lkas_hook\n");
 
   if (!controls_allowed) {
@@ -367,6 +382,8 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
     current_lkas.RDTR = stock_lkas.RDTR;
     current_lkas.RDLR = stock_lkas.RDLR;
     current_lkas.RDHR = stock_lkas.RDHR;
+    is_sent = sent_stock_lkas;
+    use_stock = false;
   } else {
     if (!have_op_lkas) return NULL;
     puts("using OP lkas\n");
@@ -379,6 +396,8 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
     current_lkas.RDTR = op_lkas.RDTR;
     current_lkas.RDLR = op_lkas.RDLR;
     current_lkas.RDHR = op_lkas.RDHR;
+    is_sent = sent_op_lkas;
+    use_stock = true;
   }
 
   puts("Pre RDLR: ");
@@ -393,12 +412,16 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   puth(lkas_rolling_counter);
   puts("\n");
 
+  if (is_sent) {
+    //If we have already sent this value, we send an inactive zero value
+    current_lkas.RDLR = vals[lkas_rolling_counter];
+    return &current_lkas;
+  }
+
   //update the rolling counter
   current_lkas.RDLR = (0xFU & current_lkas.RDLR) + (lkas_rolling_counter << 4);
 
 //Thanks Andrew C
-  // //this should somehow be controlled in safety code
-
 
   // Replacement rolling counter 
   uint32_t newidx = lkas_rolling_counter;
@@ -425,18 +448,16 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   puth(current_lkas.RDHR);
   puts("\n");
 
+  //Ensure that we only send a given value once
+  //TODO: we could fully contruct the zero payload, and only use have_
+  if (use_stock) {
+    sent_stock_lkas = true;
+  }
+  else {
+    sent_op_lkas = true;
+  }
+
   return &current_lkas;
-  // //0x30000ffdU
-  // //update the rolling counter
-  //to_send->RDLR = (0x00111111U & to_send->RDLR) + (lkas_rolling_counter << 7);
-
-
-  // puts("postval: ");
-  // puth(to_send->RDLR);
-  // puts("\n");
-
-  // CALCULATE_LKAS_CHECKSUM(to_send);
-  //return to_send;
 }
 
 
