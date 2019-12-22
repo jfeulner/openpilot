@@ -393,7 +393,7 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   puts("\n");
 
   //update the rolling counter
-  current_lkas.RDLR = (0x3FU & current_lkas.RDLR) + (lkas_rolling_counter << 4);
+  current_lkas.RDLR = (0x3FU & current_lkas.RDLR) + (lkas_rolling_counter);
 
 //Thanks Andrew C
   // //this should somehow be controlled in safety code
