@@ -247,6 +247,7 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
     vals[1] = 0x10000fffU;
     vals[2] = 0x20000ffeU;
     vals[3] = 0x30000ffdU;
+    //fe0f0020
     int rolling_counter = GET_BYTE(to_send, 0) >> 4;
 
     int desired_torque = ((GET_BYTE(to_send, 0) & 0x7U) << 8) + GET_BYTE(to_send, 1);
@@ -393,7 +394,7 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   puts("\n");
 
   //update the rolling counter
-  current_lkas.RDLR = (0x3FU & current_lkas.RDLR) + (lkas_rolling_counter << 1);
+  current_lkas.RDLR = (0xFU & current_lkas.RDLR) + (lkas_rolling_counter << 4);
 
 //Thanks Andrew C
   // //this should somehow be controlled in safety code
