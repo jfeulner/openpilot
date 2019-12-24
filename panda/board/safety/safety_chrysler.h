@@ -137,5 +137,5 @@ const safety_hooks chrysler_hooks = {
   .tx = chrysler_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .fwd = chrysler_fwd_hook,
-  .lkas = default_lkas_hook
+  .pump = default_pump_hook
 };

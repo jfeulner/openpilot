@@ -232,7 +232,7 @@ const safety_hooks honda_hooks = {
   .tx = honda_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .fwd = honda_fwd_hook,
-  .lkas = default_lkas_hook
+  .pump = default_pump_hook
 };
 
 const safety_hooks honda_bosch_hooks = {
@@ -241,5 +241,5 @@ const safety_hooks honda_bosch_hooks = {
   .tx = honda_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .fwd = honda_bosch_fwd_hook,
-  .lkas = default_lkas_hook
+  .pump = default_pump_hook
 };

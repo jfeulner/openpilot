@@ -27,8 +27,8 @@ static int default_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   return -1;
 }
 
-static CAN_FIFOMailBox_TypeDef * default_lkas_hook(void) {
-  puts("default_lkas_hook\n");
+static CAN_FIFOMailBox_TypeDef * default_pump_hook(void) {
+  puts("default_pump_hook\n");
   return NULL;
 }
 
@@ -38,7 +38,7 @@ const safety_hooks nooutput_hooks = {
   .tx = nooutput_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .fwd = default_fwd_hook,
-  .lkas = default_lkas_hook
+  .pump = default_pump_hook
 };
 
 // *** all output safety mode ***
@@ -66,5 +66,5 @@ const safety_hooks alloutput_hooks = {
   .tx = alloutput_tx_hook,
   .tx_lin = alloutput_tx_lin_hook,
   .fwd = default_fwd_hook,
-  .lkas = default_lkas_hook
+  .pump = default_pump_hook
 };

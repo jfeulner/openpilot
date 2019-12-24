@@ -31,13 +31,12 @@ struct sample_t gm_torque_driver;         // last few driver torques measured
 
 
 CAN_FIFOMailBox_TypeDef current_lkas;
-//bool lkas_pump_enabled = false;
-//bool use_stock_lkas = true;
 volatile CAN_FIFOMailBox_TypeDef stock_lkas;
 volatile bool have_stock_lkas = false;
 volatile CAN_FIFOMailBox_TypeDef op_lkas;
 volatile bool have_op_lkas = false;
 volatile int lkas_rolling_counter = 0;
+volatile bool gm_ffc_detected = false;
 
 static void SET_STOCK_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
   stock_lkas.RIR = to_send->RIR;
@@ -268,6 +267,7 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   if (bus_num == 2) {
     int addr = GET_ADDR(to_fwd);
     if (addr != 384) return 0;
+    gm_ffc_detected = true;
     SET_STOCK_LKAS(to_fwd);
   }
 
@@ -277,10 +277,11 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 
 
 //TODO this should check for stalling and fall back to 0
-static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
+static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
   //todo: consider making the timer run at 2x the expected frequency so we actually capture everything
   //todo: need to consider the implications of "dropping" payloads on steering. Could we capture an array of values and somehow average them?
-    //00000000
+  //todo: make this work in camera bypass mode
+  //00000000
   //ff0f0010
   //fe0f0020
   //fd0f0030
@@ -296,16 +297,10 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   // vals[2] = 0xfe0f0020U;
   // vals[3] = 0xfd0f0030U;
 
-  puts("gm_lkas_hook\n");
+  puts("gm_pump_hook\n");
 
-  if (!controls_allowed) {
-    if (!have_stock_lkas) return NULL;
-    puts("using stock lkas\n");
-    current_lkas.RIR = stock_lkas.RIR | 1;
-    current_lkas.RDTR = stock_lkas.RDTR;
-    current_lkas.RDLR = stock_lkas.RDLR;
-    current_lkas.RDHR = stock_lkas.RDHR;
-  } else {
+  if (!gm_ffc_detected) {
+    //If we haven't seen lkas messages from CAN3, there is no passthrough, just use OP
     if (!have_op_lkas) return NULL;
     puts("using OP lkas\n");
     current_lkas.RIR = op_lkas.RIR;
@@ -313,7 +308,24 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
     current_lkas.RDLR = op_lkas.RDLR;
     current_lkas.RDHR = op_lkas.RDHR;
   }
-
+  else 
+  {
+    if (!controls_allowed) {
+      if (!have_stock_lkas) return NULL;
+      puts("using stock lkas\n");
+      current_lkas.RIR = stock_lkas.RIR | 1;
+      current_lkas.RDTR = stock_lkas.RDTR;
+      current_lkas.RDLR = stock_lkas.RDLR;
+      current_lkas.RDHR = stock_lkas.RDHR;
+    } else {
+      if (!have_op_lkas) return NULL;
+      puts("using OP lkas\n");
+      current_lkas.RIR = op_lkas.RIR;
+      current_lkas.RDTR = op_lkas.RDTR;
+      current_lkas.RDLR = op_lkas.RDLR;
+      current_lkas.RDHR = op_lkas.RDHR;
+    }
+  }
   puts("Pre RDLR: ");
   puth(current_lkas.RDLR);
   puts(" RDHR: ");
@@ -364,5 +376,5 @@ const safety_hooks gm_hooks = {
   .tx = gm_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .fwd = gm_fwd_hook,
-  .lkas = gm_lkas_hook
+  .pump = gm_pump_hook
 };
