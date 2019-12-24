@@ -35,103 +35,25 @@ CAN_FIFOMailBox_TypeDef current_lkas;
 //bool use_stock_lkas = true;
 volatile CAN_FIFOMailBox_TypeDef stock_lkas;
 volatile bool have_stock_lkas = false;
-volatile bool sent_stock_lkas = false;
 volatile CAN_FIFOMailBox_TypeDef op_lkas;
 volatile bool have_op_lkas = false;
-volatile bool sent_op_lkas = false;
 volatile int lkas_rolling_counter = 0;
 
-// //TODO: make the frequency / interval adjustable
-// //TODO: can we change the frequency on the fly?
-// static void ENABLE_LKAS_PUMP(void) {
-//   //Setup LKAS 20ms timer
-//   timer_init(TIM5, 15);
-//   NVIC_EnableIRQ(TIM5_IRQn);
-//   lkas_pump_enabled = true;
-// }
-
-// public void DISABLE_LKAS_PUMP() {
-//   lkas_pump_enabled = false;
-// }
-
-
 static void SET_STOCK_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
-  stock_lkas.RIR = 0;
-  stock_lkas.RDTR = 0;
-  stock_lkas.RDLR = 0;
-  stock_lkas.RDHR = 0;
-
   stock_lkas.RIR = to_send->RIR;
   stock_lkas.RDTR = to_send->RDTR;
   stock_lkas.RDLR = to_send->RDLR;
   stock_lkas.RDHR = to_send->RDHR;
   have_stock_lkas = true;
-  sent_stock_lkas = false;
 }
 
 static void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
-  op_lkas.RIR = 0;
-  op_lkas.RDTR = 0;
-  op_lkas.RDLR = 0;
-  op_lkas.RDHR = 0;
-
   op_lkas.RIR = to_send->RIR;
   op_lkas.RDTR = to_send->RDTR;
   op_lkas.RDLR = to_send->RDLR;
   op_lkas.RDHR = to_send->RDHR;
   have_op_lkas = true;
-  sent_op_lkas = false;
 }
-
-
-// static void CALCULATE_LKAS_CHECKSUM(CAN_FIFOMailBox_TypeDef *to_send) {
-// /*  values = {
-//     "LKASteeringCmdActive": lkas_active,
-//     "LKASteeringCmd": apply_steer,
-//     "RollingCounter": idx,
-//     "LKASteeringCmdChecksum": 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ff) - idx
-//   }*/
-
-//   //0x30 00 0f fd U
-//   int rolling_counter = GET_BYTE(to_send, 0) >> 4;
-//   int lkas_active = (GET_BYTE(to_send, 0) & 8) >> 3;
-//   int apply_steer = (GET_BYTE(to_send, 0) & 7 << 8) + GET_BYTE(to_send, 1);
-//   int checksum = 0x1000 - (lkas_active << 11) - (apply_steer & 0x7ffU) - rolling_counter;
-
-//   puts("original Value: ");
-//   puth(to_send->RDHR);
-//   puts("\n");
-
-//   puts("rolling_counter: ");
-//   puth(rolling_counter);
-//   puts("\n");
-
-//   puts("lkas_active: ");
-//   puth(lkas_active);
-//   puts("\n");
-
-//   puts("apply_steer: ");
-//   puth(apply_steer);
-//   puts("\n");
-
-//   puts("checksum: ");
-//   puth(checksum);
-//   puts("\n");
-
-//   to_send->RDHR = (to_send->RDHR & 0xFFFF0000U) + checksum;
-
-//   puts("New Value: ");
-//   puth(to_send->RDHR);
-//   puts("\n");
-
-// }
-
-
-
-
-
-
-
 
 static void gm_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   int bus_number = GET_BUS(to_push);
@@ -248,10 +170,9 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   if (addr == 384) {
     uint32_t vals[4];
     vals[0] = 0x00000000U;
-    vals[1] = 0x10000fffU;
-    vals[2] = 0x20000ffeU;
-    vals[3] = 0x30000ffdU;
-    //fe0f0020
+    vals[1] = 0xff0f0010U;
+    vals[2] = 0xfe0f0020U;
+    vals[3] = 0xfd0f0030U;
     int rolling_counter = GET_BYTE(to_send, 0) >> 4;
 
     int desired_torque = ((GET_BYTE(to_send, 0) & 0x7U) << 8) + GET_BYTE(to_send, 1);
@@ -359,45 +280,38 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   //todo: consider making the timer run at 2x the expected frequency so we actually capture everything
   //todo: need to consider the implications of "dropping" payloads on steering. Could we capture an array of values and somehow average them?
-  uint32_t vals[4];
-  vals[0] = 0x00000000U;
-  vals[1] = 0x10000fffU;
-  vals[2] = 0x20000ffeU;
-  vals[3] = 0x30000ffdU;
+    //00000000
+  //ff0f0010
+  //fe0f0020
+  //fd0f0030
+  // vals[0] = 0x00000000U;
+  // vals[1] = 0x10000fffU;
+  // vals[2] = 0x20000ffeU;
+  // vals[3] = 0x30000ffdU;
 
-  volatile bool is_sent = false;
-  bool use_stock = true;
+
+  // uint32_t vals[4];
+  // vals[0] = 0x00000000U;
+  // vals[1] = 0xff0f0010U;
+  // vals[2] = 0xfe0f0020U;
+  // vals[3] = 0xfd0f0030U;
 
   puts("gm_lkas_hook\n");
 
   if (!controls_allowed) {
     if (!have_stock_lkas) return NULL;
     puts("using stock lkas\n");
-    current_lkas.RIR = 0;
-    current_lkas.RDTR = 0;
-    current_lkas.RDLR = 0;
-    current_lkas.RDHR = 0;
-
     current_lkas.RIR = stock_lkas.RIR | 1;
     current_lkas.RDTR = stock_lkas.RDTR;
     current_lkas.RDLR = stock_lkas.RDLR;
     current_lkas.RDHR = stock_lkas.RDHR;
-    is_sent = sent_stock_lkas;
-    use_stock = false;
   } else {
     if (!have_op_lkas) return NULL;
     puts("using OP lkas\n");
-    current_lkas.RIR = 0;
-    current_lkas.RDTR = 0;
-    current_lkas.RDLR = 0;
-    current_lkas.RDHR = 0;
-
     current_lkas.RIR = op_lkas.RIR;
     current_lkas.RDTR = op_lkas.RDTR;
     current_lkas.RDLR = op_lkas.RDLR;
     current_lkas.RDHR = op_lkas.RDHR;
-    is_sent = sent_op_lkas;
-    use_stock = true;
   }
 
   puts("Pre RDLR: ");
@@ -411,12 +325,6 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   puts("Rolling Counter: ");
   puth(lkas_rolling_counter);
   puts("\n");
-
-  if (is_sent) {
-    //If we have already sent this value, we send an inactive zero value
-    current_lkas.RDLR = vals[lkas_rolling_counter];
-    return &current_lkas;
-  }
 
   //update the rolling counter
   current_lkas.RDLR = (0xFFFFFFCF & current_lkas.RDLR) | (lkas_rolling_counter << 4);
@@ -439,23 +347,11 @@ static CAN_FIFOMailBox_TypeDef * gm_lkas_hook(void) {
   current_lkas.RDLR &= 0x0000FFFF;
   current_lkas.RDLR |= (checksumswap << 16);
 
-
-
-  //int rolling_counter = GET_BYTE(to_send, 0) >> 4;
   puts("Post RDLR: ");
   puth(current_lkas.RDLR);
   puts(" RDHR: ");
   puth(current_lkas.RDHR);
   puts("\n");
-
-  //Ensure that we only send a given value once
-  //TODO: we could fully contruct the zero payload, and only use have_
-  if (use_stock) {
-    sent_stock_lkas = true;
-  }
-  else {
-    sent_op_lkas = true;
-  }
 
   return &current_lkas;
 }
