@@ -256,6 +256,8 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 static void gm_init(int16_t param) {
   UNUSED(param);
   controls_allowed = 0;
+  //enable message pump for LKAS at 50hz
+  enable_message_pump(15);
 }
 
 
