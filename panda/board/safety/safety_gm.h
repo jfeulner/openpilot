@@ -259,7 +259,7 @@ static void gm_init(int16_t param) {
   //this does not work as expected - init is called for all at startup
   // will need a flag and start the pump on first recieved lkas message
   //enable message pump for LKAS at 50hz
-  enable_message_pump(15);
+  //enable_message_pump(15);
 }
 
 

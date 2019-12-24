@@ -630,11 +630,11 @@ int spi_cb_rx(uint8_t *data, int len, uint8_t *data_out) {
 
 // ***************************** main code *****************************
 
-void enable_message_pump(uint32_t divider) {
-    //Timer for LKAS pump
-  timer_init(TIM7, divider);
-  NVIC_EnableIRQ(TIM7_IRQn);
-}
+// void enable_message_pump(uint32_t divider) {
+//     //Timer for LKAS pump
+//   timer_init(TIM7, divider);
+//   NVIC_EnableIRQ(TIM7_IRQn);
+// }
 
 // cppcheck-suppress unusedFunction ; used in headers not included in cppcheck
 void __initialize_hardware_early(void) {
@@ -807,6 +807,10 @@ int main(void) {
   // 1hz
   timer_init(TIM9, 1464);
   NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
+
+  //Timer for LKAS pump
+  timer_init(TIM7, 15);
+  NVIC_EnableIRQ(TIM7_IRQn);
 
 #ifdef DEBUG
   puts("DEBUG ENABLED\n");
