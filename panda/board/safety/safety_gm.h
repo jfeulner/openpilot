@@ -319,7 +319,7 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
     //In OP only mode we need to send zero if controls are not allowed
     if (!controls_allowed) {
       current_lkas.RDLR = 0U;
-      current_lkas.RDhR = 0U;
+      current_lkas.RDHR = 0U;
     }
   }
   else 
@@ -348,7 +348,7 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
   uint32_t ts_elapsed = get_ts_elapsed(ts, current_lkas_ts);
   if (ts_elapsed > 40000) {
     current_lkas.RDLR = 0U;
-    current_lkas.RDhR = 0U;
+    current_lkas.RDHR = 0U;
   }
 
 
