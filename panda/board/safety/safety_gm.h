@@ -31,10 +31,13 @@ struct sample_t gm_torque_driver;         // last few driver torques measured
 
 
 CAN_FIFOMailBox_TypeDef current_lkas;
+volatile uint32_t current_lkas_ts = 0;
 volatile CAN_FIFOMailBox_TypeDef stock_lkas;
 volatile bool have_stock_lkas = false;
+volatile uint32_t stock_lkas_ts = 0;
 volatile CAN_FIFOMailBox_TypeDef op_lkas;
 volatile bool have_op_lkas = false;
+volatile uint32_t op_lkas_ts = 0;
 volatile int lkas_rolling_counter = 0;
 volatile bool gm_ffc_detected = false;
 
@@ -43,6 +46,7 @@ static void SET_STOCK_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
   stock_lkas.RDTR = to_send->RDTR;
   stock_lkas.RDLR = to_send->RDLR;
   stock_lkas.RDHR = to_send->RDHR;
+  stock_lkas_ts = TIM2->CNT;
   have_stock_lkas = true;
 }
 
@@ -51,6 +55,7 @@ static void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
   op_lkas.RDTR = to_send->RDTR;
   op_lkas.RDLR = to_send->RDLR;
   op_lkas.RDHR = to_send->RDHR;
+  op_lkas_ts = TIM2->CNT;
   have_op_lkas = true;
 }
 
@@ -260,23 +265,19 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 static void gm_init(int16_t param) {
   UNUSED(param);
   controls_allowed = 0;
-  //this does not work as expected - init is called for all at startup
-  // will need a flag and start the pump on first recieved lkas message
-  //enable message pump for LKAS at 50hz
-  //enable_message_pump(15);
 }
 
 
 static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   int bus_fwd = -1;
   if (bus_num == 0) {
-    bus_fwd = 2;  // Camera CAN
+    bus_fwd = 1;  // Camera is on CAN2
   }
-  if (bus_num == 2) {
+  if (bus_num == 1) {
     int addr = GET_ADDR(to_fwd);
     if (addr != 384) return 0;
-    gm_ffc_detected = true;
     SET_STOCK_LKAS(to_fwd);
+    gm_ffc_detected = true;
   }
 
   // fallback to do not forward
@@ -293,28 +294,33 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
   //ff0f0010
   //fe0f0020
   //fd0f0030
+  // uint32_t vals[4];
   // vals[0] = 0x00000000U;
   // vals[1] = 0x10000fffU;
   // vals[2] = 0x20000ffeU;
   // vals[3] = 0x30000ffdU;
 
 
-  // uint32_t vals[4];
+  // 
   // vals[0] = 0x00000000U;
   // vals[1] = 0xff0f0010U;
   // vals[2] = 0xfe0f0020U;
   // vals[3] = 0xfd0f0030U;
 
-  puts("gm_pump_hook\n");
-
   if (!gm_ffc_detected) {
-    //If we haven't seen lkas messages from CAN3, there is no passthrough, just use OP
+    //If we haven't seen lkas messages from CAN2, there is no passthrough, just use OP
     if (!have_op_lkas) return NULL;
     puts("using OP lkas\n");
     current_lkas.RIR = op_lkas.RIR;
     current_lkas.RDTR = op_lkas.RDTR;
     current_lkas.RDLR = op_lkas.RDLR;
     current_lkas.RDHR = op_lkas.RDHR;
+    current_lkas_ts = op_lkas_ts;
+    //In OP only mode we need to send zero if controls are not allowed
+    if (!controls_allowed) {
+      current_lkas.RDLR = 0U;
+      current_lkas.RDhR = 0U;
+    }
   }
   else 
   {
@@ -325,6 +331,7 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
       current_lkas.RDTR = stock_lkas.RDTR;
       current_lkas.RDLR = stock_lkas.RDLR;
       current_lkas.RDHR = stock_lkas.RDHR;
+      current_lkas_ts = stock_lkas_ts;
     } else {
       if (!have_op_lkas) return NULL;
       puts("using OP lkas\n");
@@ -332,14 +339,25 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
       current_lkas.RDTR = op_lkas.RDTR;
       current_lkas.RDLR = op_lkas.RDLR;
       current_lkas.RDHR = op_lkas.RDHR;
+      current_lkas_ts = op_lkas_ts;
     }
   }
+
+  // If the timestamp of the last message is more than 40ms old, fallback to zero
+  uint32_t ts = TIM2->CNT;
+  uint32_t ts_elapsed = get_ts_elapsed(ts, current_lkas_ts);
+  if (ts_elapsed > 40000) {
+    current_lkas.RDLR = 0U;
+    current_lkas.RDhR = 0U;
+  }
+
+
+
   puts("Pre RDLR: ");
   puth(current_lkas.RDLR);
   puts(" RDHR: ");
   puth(current_lkas.RDHR);
   puts("\n");
-
   lkas_rolling_counter = (lkas_rolling_counter + 1) % 4;
 
   puts("Rolling Counter: ");

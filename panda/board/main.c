@@ -630,11 +630,22 @@ int spi_cb_rx(uint8_t *data, int len, uint8_t *data_out) {
 
 // ***************************** main code *****************************
 
-// void enable_message_pump(uint32_t divider) {
+// void enable_message_pump(uint32_t divider, *fwd_hook hook) {
 //     //Timer for LKAS pump
 //   timer_init(TIM7, divider);
 //   NVIC_EnableIRQ(TIM7_IRQn);
 // }
+
+// void update_message_pump_rate(uint32_t divider) {
+//   TIM7->PSC = divider-1;
+// }
+
+// void disable_message_pump() {
+//   TIM7->PSC = divider-1;
+// }
+
+
+
 
 // cppcheck-suppress unusedFunction ; used in headers not included in cppcheck
 void __initialize_hardware_early(void) {
