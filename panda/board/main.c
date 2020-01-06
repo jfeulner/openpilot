@@ -630,24 +630,24 @@ int spi_cb_rx(uint8_t *data, int len, uint8_t *data_out) {
 
 // ***************************** main code *****************************
 
-*pump_hook message_pump_hook;
+// *pump_hook message_pump_hook;
 
-void enable_message_pump(uint32_t divider, *pump_hook hook) {
-  //Timer for LKAS pump
-  message_pump_hook = hook;
-  timer_init(TIM7, divider);
-  NVIC_EnableIRQ(TIM7_IRQn);
-}
+// void enable_message_pump(uint32_t divider, *pump_hook hook) {
+//   //Timer for LKAS pump
+//   message_pump_hook = hook;
+//   timer_init(TIM7, divider);
+//   NVIC_EnableIRQ(TIM7_IRQn);
+// }
 
-void update_message_pump_rate(uint32_t divider) {
-  //TODO: test if this works
-  TIM7->PSC = divider-1;
-}
+// void update_message_pump_rate(uint32_t divider) {
+//   //TODO: test if this works
+//   TIM7->PSC = divider-1;
+// }
 
-void disable_message_pump() {
-  NVIC_DisableIRQ(TIM7_IRQn);
-  pump_hook = null;
-}
+// void disable_message_pump() {
+//   NVIC_DisableIRQ(TIM7_IRQn);
+//   pump_hook = null;
+// }
 
 
 
@@ -674,8 +674,8 @@ uint64_t tcnt = 0;
 void TIM7_IRQHandler(void) {
   //TODO: This needs to check for ignition and stop itself?
   if (TIM7->SR != 0) {
-    if (pump_hook != null) {
-      lkas_send(pump_hook);
+    if (message_pump_hook != null) {
+      lkas_send(message_pump_hook);
     }
   }
   TIM7->SR = 0;
