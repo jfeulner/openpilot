@@ -421,8 +421,9 @@ void CAN3_RX0_IRQHandler(void) { can_rx(2); }
 void CAN3_SCE_IRQHandler(void) { can_sce(CAN3); }
 
 
-void lkas_send(pump_hook hook) {
+void pump_send(pump_hook hook) {
   uint8_t bus_number = 0U;
+  if (hook == NULL) return;
   CAN_FIFOMailBox_TypeDef *to_push = hook();
   if (to_push != NULL) {
     if (bus_number < BUS_MAX) {

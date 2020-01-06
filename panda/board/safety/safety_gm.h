@@ -41,7 +41,6 @@ volatile bool gm_have_op_lkas = false;
 volatile uint32_t gm_op_lkas_ts = 0;
 volatile int gm_lkas_rolling_counter = 0;
 volatile bool gm_ffc_detected = false;
-volatile bool gm_pump_started = false;
 
 static void gm_set_stock_lkas(CAN_FIFOMailBox_TypeDef *to_send) {
   gm_stock_lkas.RIR = to_send->RIR;
@@ -369,8 +368,7 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
 }
 
 static void gm_init_lkas_pump() {
-  if (gm_pump_started) return;
-  gm_pump_started = true;
+  if (message_pump_active) return;
   enable_message_pump(15, gm_pump_hook);
 }
 

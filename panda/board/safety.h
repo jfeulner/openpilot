@@ -59,6 +59,8 @@ pump_hook message_pump_hook;
 
 void enable_message_pump(uint32_t divider, pump_hook hook) {
   //Timer for LKAS pump
+  //todo: some kind of locking?
+  message_pump_active = true;
   message_pump_hook = hook;
   timer_init(TIM7, divider);
   NVIC_EnableIRQ(TIM7_IRQn);
@@ -113,6 +115,10 @@ int safety_set_mode(uint16_t mode, int16_t param) {
   }
   if ((set_status == 0) && (current_hooks->init != NULL)) {
     current_hooks->init(param);
+  }
+  if (mode == SAFETY_NOOUTPUT) {
+    disable_message_pump();
+    message_pump_active = false;
   }
   return set_status;
 }
