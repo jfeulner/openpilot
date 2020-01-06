@@ -71,7 +71,7 @@ void update_message_pump_rate(uint32_t divider) {
 
 void disable_message_pump() {
   NVIC_DisableIRQ(TIM7_IRQn);
-  message_pump_hook = null;
+  message_pump_hook = NULL;
 }
 
 

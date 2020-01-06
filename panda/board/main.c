@@ -674,7 +674,7 @@ uint64_t tcnt = 0;
 void TIM7_IRQHandler(void) {
   //TODO: This needs to check for ignition and stop itself?
   if (TIM7->SR != 0) {
-    if (message_pump_hook != null) {
+    if (message_pump_hook != NULL) {
       lkas_send(message_pump_hook);
     }
   }
