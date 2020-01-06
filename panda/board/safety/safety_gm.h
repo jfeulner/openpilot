@@ -29,34 +29,36 @@ int gm_desired_torque_last = 0;
 uint32_t gm_ts_last = 0;
 struct sample_t gm_torque_driver;         // last few driver torques measured
 
+static void gm_init_lkas_pump(void);
 
-CAN_FIFOMailBox_TypeDef current_lkas;
-volatile uint32_t current_lkas_ts = 0;
-volatile CAN_FIFOMailBox_TypeDef stock_lkas;
-volatile bool have_stock_lkas = false;
-volatile uint32_t stock_lkas_ts = 0;
-volatile CAN_FIFOMailBox_TypeDef op_lkas;
-volatile bool have_op_lkas = false;
-volatile uint32_t op_lkas_ts = 0;
-volatile int lkas_rolling_counter = 0;
+CAN_FIFOMailBox_TypeDef gm_current_lkas;
+volatile uint32_t gm_current_lkas_ts = 0;
+volatile CAN_FIFOMailBox_TypeDef gm_stock_lkas;
+volatile bool gm_have_stock_lkas = false;
+volatile uint32_t gm_stock_lkas_ts = 0;
+volatile CAN_FIFOMailBox_TypeDef gm_op_lkas;
+volatile bool gm_have_op_lkas = false;
+volatile uint32_t gm_op_lkas_ts = 0;
+volatile int gm_lkas_rolling_counter = 0;
 volatile bool gm_ffc_detected = false;
+volatile bool gm_pump_started = false;
 
-static void SET_STOCK_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
-  stock_lkas.RIR = to_send->RIR;
-  stock_lkas.RDTR = to_send->RDTR;
-  stock_lkas.RDLR = to_send->RDLR;
-  stock_lkas.RDHR = to_send->RDHR;
-  stock_lkas_ts = TIM2->CNT;
-  have_stock_lkas = true;
+static void gm_set_stock_lkas(CAN_FIFOMailBox_TypeDef *to_send) {
+  gm_stock_lkas.RIR = to_send->RIR;
+  gm_stock_lkas.RDTR = to_send->RDTR;
+  gm_stock_lkas.RDLR = to_send->RDLR;
+  gm_stock_lkas.RDHR = to_send->RDHR;
+  gm_stock_lkas_ts = TIM2->CNT;
+  gm_have_stock_lkas = true;
 }
 
-static void SET_OP_LKAS(CAN_FIFOMailBox_TypeDef *to_send) {
-  op_lkas.RIR = to_send->RIR;
-  op_lkas.RDTR = to_send->RDTR;
-  op_lkas.RDLR = to_send->RDLR;
-  op_lkas.RDHR = to_send->RDHR;
-  op_lkas_ts = TIM2->CNT;
-  have_op_lkas = true;
+static void gm_set_op_lkas(CAN_FIFOMailBox_TypeDef *to_send) {
+  gm_op_lkas.RIR = to_send->RIR;
+  gm_op_lkas.RDTR = to_send->RDTR;
+  gm_op_lkas.RDLR = to_send->RDLR;
+  gm_op_lkas.RDHR = to_send->RDHR;
+  gm_op_lkas_ts = TIM2->CNT;
+  gm_have_op_lkas = true;
 }
 
 static void gm_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
@@ -173,14 +175,10 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   // LKA STEER: safety check
   if (addr == 384) {
     uint32_t vals[4];
-      vals[0] = 0x00000000U;
-      vals[1] = 0x10000fffU;
-      vals[2] = 0x20000ffeU;
-      vals[3] = 0x30000ffdU;
-    // vals[0] = 0x00000000U;
-    // vals[1] = 0xff0f0010U;
-    // vals[2] = 0xfe0f0020U;
-    // vals[3] = 0xfd0f0030U;
+    vals[0] = 0x00000000U;
+    vals[1] = 0x10000fffU;
+    vals[2] = 0x20000ffeU;
+    vals[3] = 0x30000ffdU;
     int rolling_counter = GET_BYTE(to_send, 0) >> 4;
 
     int desired_torque = ((GET_BYTE(to_send, 0) & 0x7U) << 8) + GET_BYTE(to_send, 1);
@@ -231,7 +229,8 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
       //tx = 0;
     }
     tx = 0;
-    SET_OP_LKAS(to_send);
+    gm_set_op_lkas(to_send);
+    gm_init_lkas_pump();
   }
 
   // PARK ASSIST STEER: unlimited torque, no thanks
@@ -276,8 +275,9 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   if (bus_num == 1) {
     int addr = GET_ADDR(to_fwd);
     if (addr != 384) return 0;
-    SET_STOCK_LKAS(to_fwd);
+    gm_set_stock_lkas(to_fwd);
     gm_ffc_detected = true;
+    gm_init_lkas_pump();
   }
 
   // fallback to do not forward
@@ -285,95 +285,75 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 }
 
 
-//TODO this should check for stalling and fall back to 0
 static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
-  //todo: consider making the timer run at 2x the expected frequency so we actually capture everything
-  //todo: need to consider the implications of "dropping" payloads on steering. Could we capture an array of values and somehow average them?
-  //todo: make this work in camera bypass mode
-  //00000000
-  //ff0f0010
-  //fe0f0020
-  //fd0f0030
-  // uint32_t vals[4];
-  // vals[0] = 0x00000000U;
-  // vals[1] = 0x10000fffU;
-  // vals[2] = 0x20000ffeU;
-  // vals[3] = 0x30000ffdU;
-
-
-  // 
-  // vals[0] = 0x00000000U;
-  // vals[1] = 0xff0f0010U;
-  // vals[2] = 0xfe0f0020U;
-  // vals[3] = 0xfd0f0030U;
 
   if (!gm_ffc_detected) {
     //If we haven't seen lkas messages from CAN2, there is no passthrough, just use OP
-    if (!have_op_lkas) return NULL;
-    puts("using OP lkas\n");
-    current_lkas.RIR = op_lkas.RIR;
-    current_lkas.RDTR = op_lkas.RDTR;
-    current_lkas.RDLR = op_lkas.RDLR;
-    current_lkas.RDHR = op_lkas.RDHR;
-    current_lkas_ts = op_lkas_ts;
+    if (!gm_have_op_lkas) return NULL;
+    //puts("using OP lkas\n");
+    gm_current_lkas.RIR = gm_op_lkas.RIR;
+    gm_current_lkas.RDTR = gm_op_lkas.RDTR;
+    gm_current_lkas.RDLR = gm_op_lkas.RDLR;
+    gm_current_lkas.RDHR = gm_op_lkas.RDHR;
+    gm_current_lkas_ts = gm_op_lkas_ts;
     //In OP only mode we need to send zero if controls are not allowed
     if (!controls_allowed) {
-      current_lkas.RDLR = 0U;
-      current_lkas.RDHR = 0U;
+      gm_current_lkas.RDLR = 0U;
+      gm_current_lkas.RDHR = 0U;
     }
   }
   else 
   {
     if (!controls_allowed) {
-      if (!have_stock_lkas) return NULL;
-      puts("using stock lkas\n");
-      current_lkas.RIR = stock_lkas.RIR | 1;
-      current_lkas.RDTR = stock_lkas.RDTR;
-      current_lkas.RDLR = stock_lkas.RDLR;
-      current_lkas.RDHR = stock_lkas.RDHR;
-      current_lkas_ts = stock_lkas_ts;
+      if (!gm_have_stock_lkas) return NULL;
+      //puts("using stock lkas\n");
+      gm_current_lkas.RIR = gm_stock_lkas.RIR | 1;
+      gm_current_lkas.RDTR = gm_stock_lkas.RDTR;
+      gm_current_lkas.RDLR = gm_stock_lkas.RDLR;
+      gm_current_lkas.RDHR = gm_stock_lkas.RDHR;
+      gm_current_lkas_ts = gm_stock_lkas_ts;
     } else {
-      if (!have_op_lkas) return NULL;
-      puts("using OP lkas\n");
-      current_lkas.RIR = op_lkas.RIR;
-      current_lkas.RDTR = op_lkas.RDTR;
-      current_lkas.RDLR = op_lkas.RDLR;
-      current_lkas.RDHR = op_lkas.RDHR;
-      current_lkas_ts = op_lkas_ts;
+      if (!gm_have_op_lkas) return NULL;
+      //puts("using OP lkas\n");
+      gm_current_lkas.RIR = gm_op_lkas.RIR;
+      gm_current_lkas.RDTR = gm_op_lkas.RDTR;
+      gm_current_lkas.RDLR = gm_op_lkas.RDLR;
+      gm_current_lkas.RDHR = gm_op_lkas.RDHR;
+      gm_current_lkas_ts = gm_op_lkas_ts;
     }
   }
 
   // If the timestamp of the last message is more than 40ms old, fallback to zero
   uint32_t ts = TIM2->CNT;
-  uint32_t ts_elapsed = get_ts_elapsed(ts, current_lkas_ts);
+  uint32_t ts_elapsed = get_ts_elapsed(ts, gm_current_lkas_ts);
   if (ts_elapsed > 40000) {
-    current_lkas.RDLR = 0U;
-    current_lkas.RDHR = 0U;
+    gm_current_lkas.RDLR = 0U;
+    gm_current_lkas.RDHR = 0U;
   }
 
 
 
-  puts("Pre RDLR: ");
-  puth(current_lkas.RDLR);
-  puts(" RDHR: ");
-  puth(current_lkas.RDHR);
-  puts("\n");
-  lkas_rolling_counter = (lkas_rolling_counter + 1) % 4;
+  // puts("Pre RDLR: ");
+  // puth(gm_current_lkas.RDLR);
+  // puts(" RDHR: ");
+  // puth(gm_current_lkas.RDHR);
+  // puts("\n");
+  gm_lkas_rolling_counter = (gm_lkas_rolling_counter + 1) % 4;
 
-  puts("Rolling Counter: ");
-  puth(lkas_rolling_counter);
-  puts("\n");
+  // puts("Rolling Counter: ");
+  // puth(gm_lkas_rolling_counter);
+  // puts("\n");
 
   //update the rolling counter
-  current_lkas.RDLR = (0xFFFFFFCF & current_lkas.RDLR) | (lkas_rolling_counter << 4);
+  gm_current_lkas.RDLR = (0xFFFFFFCF & gm_current_lkas.RDLR) | (gm_lkas_rolling_counter << 4);
 
-//Thanks Andrew C
+  // Recalculate checksum - Thanks Andrew C
 
   // Replacement rolling counter 
-  uint32_t newidx = lkas_rolling_counter;
+  uint32_t newidx = gm_lkas_rolling_counter;
   
   // Pull out LKA Steering CMD data and swap endianness (not including rolling counter)
-  uint32_t dataswap = ((current_lkas.RDLR << 8) & 0x0F00U) | ((current_lkas.RDLR >> 8) &0xFFU);
+  uint32_t dataswap = ((gm_current_lkas.RDLR << 8) & 0x0F00U) | ((gm_current_lkas.RDLR >> 8) &0xFFU);
 
   // Compute Checksum
   uint32_t checksum = (0x1000 - dataswap - newidx) & 0x0fff;
@@ -382,19 +362,17 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
   uint32_t checksumswap = (checksum >> 8) | ((checksum << 8) & 0xFF00U);
   
   // Merge the rewritten checksum back into the BxCAN frame RDLR
-  current_lkas.RDLR &= 0x0000FFFF;
-  current_lkas.RDLR |= (checksumswap << 16);
+  gm_current_lkas.RDLR &= 0x0000FFFF;
+  gm_current_lkas.RDLR |= (checksumswap << 16);
 
-  puts("Post RDLR: ");
-  puth(current_lkas.RDLR);
-  puts(" RDHR: ");
-  puth(current_lkas.RDHR);
-  puts("\n");
-
-  return &current_lkas;
+  return &gm_current_lkas;
 }
 
-
+static void gm_init_lkas_pump() {
+  if (gm_pump_started) return;
+  gm_pump_started = true;
+  enable_message_pump(15, gm_pump_hook);
+}
 
 const safety_hooks gm_hooks = {
   .init = gm_init,
@@ -402,5 +380,4 @@ const safety_hooks gm_hooks = {
   .tx = gm_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .fwd = gm_fwd_hook,
-  .pump = gm_pump_hook
 };

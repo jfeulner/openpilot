@@ -40,7 +40,6 @@ typedef struct {
   tx_hook tx;
   tx_lin_hook tx_lin;
   fwd_hook fwd;
-  pump_hook pump;
 } safety_hooks;
 
 // This can be set by the safety hooks.

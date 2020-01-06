@@ -164,5 +164,4 @@ const safety_hooks volkswagen_hooks = {
   .tx = volkswagen_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .fwd = volkswagen_fwd_hook,
-  .pump = default_pump_hook
 };

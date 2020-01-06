@@ -40,6 +40,5 @@ const safety_hooks gm_ascm_hooks = {
   .tx = alloutput_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .fwd = gm_ascm_fwd_hook,
-  .pump = default_pump_hook
 };
 

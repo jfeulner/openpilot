@@ -39,5 +39,4 @@ const safety_hooks elm327_hooks = {
   .tx = elm327_tx_hook,
   .tx_lin = elm327_tx_lin_hook,
   .fwd = default_fwd_hook,
-  .pump = default_pump_hook
 };

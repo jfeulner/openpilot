@@ -55,10 +55,6 @@ int safety_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   return current_hooks->fwd(bus_num, to_fwd);
 }
 
-CAN_FIFOMailBox_TypeDef * safety_pump_hook(void) {
-  return current_hooks->pump();
-}
-
 typedef struct {
   uint16_t id;
   const safety_hooks *hooks;

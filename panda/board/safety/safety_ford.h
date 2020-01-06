@@ -98,5 +98,4 @@ const safety_hooks ford_hooks = {
   .tx = ford_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .fwd = default_fwd_hook,
-  .pump = default_pump_hook
 };

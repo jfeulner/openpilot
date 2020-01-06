@@ -165,5 +165,4 @@ const safety_hooks mazda_hooks = {
   .tx = mazda_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
   .fwd = mazda_fwd_hook,
-  .pump = default_pump_hook
 };
