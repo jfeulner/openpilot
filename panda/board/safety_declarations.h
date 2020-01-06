@@ -33,7 +33,7 @@ typedef int (*tx_lin_hook)(int lin_num, uint8_t *data, int len);
 typedef int (*fwd_hook)(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd);
 typedef CAN_FIFOMailBox_TypeDef * (*pump_hook)(void);
 
-void enable_message_pump(uint32_t divider, pump_hook *hook);
+void enable_message_pump(uint32_t divider, pump_hook hook);
 void update_message_pump_rate(uint32_t divider);
 void disable_message_pump(void);
 
