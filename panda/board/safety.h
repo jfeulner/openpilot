@@ -57,7 +57,7 @@ int safety_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 
 pump_hook *message_pump_hook;
 
-void enable_message_pump(uint32_t divider, *pump_hook hook) {
+void enable_message_pump(uint32_t divider, pump_hook *hook) {
   //Timer for LKAS pump
   message_pump_hook = hook;
   timer_init(TIM7, divider);
