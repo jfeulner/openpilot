@@ -289,7 +289,7 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
   if (!gm_ffc_detected) {
     //If we haven't seen lkas messages from CAN2, there is no passthrough, just use OP
     if (!gm_have_op_lkas) return NULL;
-    //puts("using OP lkas\n");
+    puts("using OP lkas\n");
     gm_current_lkas.RIR = gm_op_lkas.RIR;
     gm_current_lkas.RDTR = gm_op_lkas.RDTR;
     gm_current_lkas.RDLR = gm_op_lkas.RDLR;
@@ -305,7 +305,7 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
   {
     if (!controls_allowed) {
       if (!gm_have_stock_lkas) return NULL;
-      //puts("using stock lkas\n");
+      puts("using stock lkas\n");
       gm_current_lkas.RIR = gm_stock_lkas.RIR | 1;
       gm_current_lkas.RDTR = gm_stock_lkas.RDTR;
       gm_current_lkas.RDLR = gm_stock_lkas.RDLR;
@@ -313,7 +313,7 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
       gm_current_lkas_ts = gm_stock_lkas_ts;
     } else {
       if (!gm_have_op_lkas) return NULL;
-      //puts("using OP lkas\n");
+      puts("using OP lkas\n");
       gm_current_lkas.RIR = gm_op_lkas.RIR;
       gm_current_lkas.RDTR = gm_op_lkas.RDTR;
       gm_current_lkas.RDLR = gm_op_lkas.RDLR;
