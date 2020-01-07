@@ -383,7 +383,7 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
   gm_lkas_buffer.current_frame.RDLR &= 0x0000FFFF;
   gm_lkas_buffer.current_frame.RDLR |= (checksumswap << 16);
 
-  return &gm_lkas_buffer.current_frame;
+  return (CAN_FIFOMailBox_TypeDef*)&gm_lkas_buffer.current_frame;
 }
 
 static void gm_init_lkas_pump() {
