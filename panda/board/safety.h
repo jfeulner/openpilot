@@ -74,6 +74,7 @@ void update_message_pump_rate(uint32_t divider) {
 void disable_message_pump() {
   NVIC_DisableIRQ(TIM7_IRQn);
   message_pump_hook = NULL;
+  message_pump_active = false;
 }
 
 
@@ -117,8 +118,8 @@ int safety_set_mode(uint16_t mode, int16_t param) {
     current_hooks->init(param);
   }
   if (mode == SAFETY_NOOUTPUT) {
+    puts("Disabling message pump due to SAFETY_NOOUTPUT");
     disable_message_pump();
-    message_pump_active = false;
   }
   return set_status;
 }

@@ -312,6 +312,7 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 
 
 static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
+  volatile bool current_controls_allowed = (volatile bool)controls_allowed && !(volatile bool)pedal_pressed;
 
   if (!gm_ffc_detected) {
     //If we haven't seen lkas messages from CAN2, there is no passthrough, just use OP
@@ -319,19 +320,19 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
     //puts("using OP lkas\n");
     gm_apply_buffer(&gm_lkas_buffer, false);
     //In OP only mode we need to send zero if controls are not allowed
-    if (!controls_allowed) {
+    if (!current_controls_allowed) {
       gm_lkas_buffer.current_frame.RDLR = 0U;
       gm_lkas_buffer.current_frame.RDHR = 0U;
     }
   }
   else 
   {
-    if (!controls_allowed) {
+    if (!current_controls_allowed) {
       if (gm_lkas_buffer.stock_ts == 0) return NULL;
       //puts("using stock lkas\n");
       gm_apply_buffer(&gm_lkas_buffer, true);
     } else {
-      if (!gm_lkas_buffer.op_ts) return NULL;
+      if (gm_lkas_buffer.op_ts == 0) return NULL;
       //puts("using OP lkas\n");
       gm_apply_buffer(&gm_lkas_buffer, false);
     }
