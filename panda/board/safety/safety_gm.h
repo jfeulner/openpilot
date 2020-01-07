@@ -341,14 +341,19 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
   // If it is more than 1 second, disable message pump
   uint32_t ts = TIM2->CNT;
   uint32_t ts_elapsed = get_ts_elapsed(ts, gm_lkas_buffer.current_ts);
-  if (ts_elapsed > 40000) {
-    puts("Zeroing frame due to stale buffer\n");
-    gm_lkas_buffer.current_frame.RDLR = 0U;
-    gm_lkas_buffer.current_frame.RDHR = 0U;
-  } else if (ts_elapsed > 1000000) {
+
+
+
+  if (ts_elapsed > 1000000) {
     puts("Disabling message pump due to stale buffer\n");
     disable_message_pump();
-  }
+  } else if (ts_elapsed > 40000) {
+    puts("Zeroing frame due to stale buffer: ");
+    puth(ts_elapsed);
+    puts("\n");
+    gm_lkas_buffer.current_frame.RDLR = 0U;
+    gm_lkas_buffer.current_frame.RDHR = 0U;
+  } else 
 
   gm_lkas_buffer.rolling_counter = (gm_lkas_buffer.rolling_counter + 1) % 4;
 
