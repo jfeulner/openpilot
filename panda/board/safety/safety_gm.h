@@ -42,7 +42,7 @@ struct sample_t gm_torque_driver;         // last few driver torques measured
 static void gm_init_lkas_pump(void);
 
 
-gm_dual_buffer gm_lkas_buffer;
+volatile gm_dual_buffer gm_lkas_buffer;
 
 // CAN_FIFOMailBox_TypeDef gm_current_lkas;
 // volatile uint32_t gm_current_lkas_ts = 0;
@@ -55,7 +55,7 @@ gm_dual_buffer gm_lkas_buffer;
 // volatile int gm_lkas_rolling_counter = 0;
 volatile bool gm_ffc_detected = false;
 
-static void gm_apply_buffer(gm_dual_buffer *buffer, bool stock) {
+static void gm_apply_buffer(volatile gm_dual_buffer *buffer, bool stock) {
   if (stock) {
     buffer->current_frame.RIR = buffer->stock_frame.RIR;
     buffer->current_frame.RDTR = buffer->stock_frame.RDTR;
