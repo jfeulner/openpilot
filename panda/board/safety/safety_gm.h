@@ -316,7 +316,7 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
   if (!gm_ffc_detected) {
     //If we haven't seen lkas messages from CAN2, there is no passthrough, just use OP
     if (gm_lkas_buffer.op_ts == 0) return NULL;
-    puts("using OP lkas\n");
+    //puts("using OP lkas\n");
     gm_apply_buffer(&gm_lkas_buffer, false);
     //In OP only mode we need to send zero if controls are not allowed
     if (!controls_allowed) {
@@ -328,21 +328,26 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
   {
     if (!controls_allowed) {
       if (gm_lkas_buffer.stock_ts == 0) return NULL;
-      puts("using stock lkas\n");
+      //puts("using stock lkas\n");
       gm_apply_buffer(&gm_lkas_buffer, true);
     } else {
       if (!gm_lkas_buffer.op_ts) return NULL;
-      puts("using OP lkas\n");
+      //puts("using OP lkas\n");
       gm_apply_buffer(&gm_lkas_buffer, false);
     }
   }
 
   // If the timestamp of the last message is more than 40ms old, fallback to zero
+  // If it is more than 1 second, disable message pump
   uint32_t ts = TIM2->CNT;
   uint32_t ts_elapsed = get_ts_elapsed(ts, gm_lkas_buffer.current_ts);
   if (ts_elapsed > 40000) {
-      gm_lkas_buffer.current_frame.RDLR = 0U;
-      gm_lkas_buffer.current_frame.RDHR = 0U;
+    puts("Zeroing frame due to stale buffer\n");
+    gm_lkas_buffer.current_frame.RDLR = 0U;
+    gm_lkas_buffer.current_frame.RDHR = 0U;
+  } else if (ts_elapsed > 1000000) {
+    puts("Disabling message pump due to stale buffer\n");
+    disable_message_pump();
   }
 
   gm_lkas_buffer.rolling_counter = (gm_lkas_buffer.rolling_counter + 1) % 4;
@@ -373,6 +378,7 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
 
 static void gm_init_lkas_pump() {
   if (message_pump_active) return;
+  puts("Starting message pump\n");
   enable_message_pump(15, gm_pump_hook);
 }
 
