@@ -31,7 +31,7 @@ typedef void (*rx_hook)(CAN_FIFOMailBox_TypeDef *to_push);
 typedef int (*tx_hook)(CAN_FIFOMailBox_TypeDef *to_send);
 typedef int (*tx_lin_hook)(int lin_num, uint8_t *data, int len);
 typedef int (*fwd_hook)(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd);
-typedef volatile CAN_FIFOMailBox_TypeDef * (*pump_hook)(void);
+typedef CAN_FIFOMailBox_TypeDef * (*pump_hook)(void);
 
 void enable_message_pump(uint32_t divider, pump_hook hook);
 void update_message_pump_rate(uint32_t divider);

@@ -9,13 +9,13 @@
 //      brake > 0mph
 
 typedef struct {
-  volatile uint32_t current_ts;
-  volatile CAN_FIFOMailBox_TypeDef current_frame;
-  volatile uint32_t stock_ts;
-  volatile CAN_FIFOMailBox_TypeDef stock_frame;
-  volatile uint32_t op_ts;
-  volatile CAN_FIFOMailBox_TypeDef op_frame;
-  volatile uint32_t rolling_counter;
+  uint32_t current_ts;
+  CAN_FIFOMailBox_TypeDef current_frame;
+  uint32_t stock_ts;
+  CAN_FIFOMailBox_TypeDef stock_frame;
+  uint32_t op_ts;
+  CAN_FIFOMailBox_TypeDef op_frame;
+  uint32_t rolling_counter;
 } gm_dual_buffer;
 
 const int GM_MAX_STEER = 300;
@@ -314,7 +314,7 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 }
 
 
-static volatile CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
+static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
   volatile int pedal_pressed = (volatile int)gm_gas_prev || ((volatile int)gm_brake_prev && (volatile int)gm_moving);
   volatile bool current_controls_allowed = (volatile bool)controls_allowed && !(volatile int)pedal_pressed;
 
@@ -358,7 +358,7 @@ static volatile CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
     puts("\n");
     gm_lkas_buffer.current_frame.RDLR = 0U;
     gm_lkas_buffer.current_frame.RDHR = 0U;
-  } else 
+  }
 
   gm_lkas_buffer.rolling_counter = (gm_lkas_buffer.rolling_counter + 1) % 4;
 

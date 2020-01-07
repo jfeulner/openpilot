@@ -424,16 +424,16 @@ void CAN3_SCE_IRQHandler(void) { can_sce(CAN3); }
 void pump_send(pump_hook hook) {
   uint8_t bus_number = 0U;
   if (hook == NULL) return;
-  volatile CAN_FIFOMailBox_TypeDef *to_push = hook();
+  CAN_FIFOMailBox_TypeDef *to_push = hook();
   if (to_push != NULL) {
     if (bus_number < BUS_MAX) {
       // add CAN packet to send queuesend
       // bus number isn't passed through
       to_push->RDTR &= 0xF;
       if ((bus_number == 3U) && (can_num_lookup[3] == 0xFFU)) {
-        gmlan_send_errs += bitbang_gmlan((CAN_FIFOMailBox_TypeDef*)to_push) ? 0U : 1U;
+        gmlan_send_errs += bitbang_gmlan(to_push) ? 0U : 1U;
       } else {
-        can_fwd_errs += can_push(can_queues[bus_number], (CAN_FIFOMailBox_TypeDef*)to_push) ? 0U : 1U;
+        can_fwd_errs += can_push(can_queues[bus_number], to_push) ? 0U : 1U;
         process_can(CAN_NUM_FROM_BUS_NUM(bus_number));
       }
     }
