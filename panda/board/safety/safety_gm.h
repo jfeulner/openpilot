@@ -314,7 +314,7 @@ static int gm_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 }
 
 
-static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
+static volatile CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
   volatile int pedal_pressed = (volatile int)gm_gas_prev || ((volatile int)gm_brake_prev && (volatile int)gm_moving);
   volatile bool current_controls_allowed = (volatile bool)controls_allowed && !(volatile int)pedal_pressed;
 
@@ -383,7 +383,7 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
   gm_lkas_buffer.current_frame.RDLR &= 0x0000FFFF;
   gm_lkas_buffer.current_frame.RDLR |= (checksumswap << 16);
 
-  return (CAN_FIFOMailBox_TypeDef*)&gm_lkas_buffer.current_frame;
+  return &gm_lkas_buffer.current_frame;
 }
 
 static void gm_init_lkas_pump() {
