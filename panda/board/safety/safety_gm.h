@@ -62,7 +62,7 @@ static void gm_apply_buffer(gm_dual_buffer *buffer, bool stock) {
     buffer->current_frame.RDLR = buffer->stock_frame.RDLR;
     buffer->current_frame.RDHR = buffer->stock_frame.RDHR;
     buffer->current_ts = buffer->stock_ts;
-  }
+  } else {
     buffer->current_frame.RIR = buffer->op_frame.RIR;
     buffer->current_frame.RDTR = buffer->op_frame.RDTR;
     buffer->current_frame.RDLR = buffer->op_frame.RDLR;
