@@ -9,13 +9,13 @@
 //      brake > 0mph
 
 typedef struct {
-  uint32_t current_ts = 0;
+  uint32_t current_ts;
   CAN_FIFOMailBox_TypeDef current_frame;
-  uint32_t stock_ts = 0;
+  uint32_t stock_ts;
   CAN_FIFOMailBox_TypeDef stock_frame;
-  uint32_t op_ts = 0;
+  uint32_t op_ts;
   CAN_FIFOMailBox_TypeDef op_frame;
-  uint32_t rolling_counter = 0;
+  uint32_t rolling_counter;
 } gm_dual_buffer;
 
 const int GM_MAX_STEER = 300;
@@ -42,7 +42,7 @@ struct sample_t gm_torque_driver;         // last few driver torques measured
 static void gm_init_lkas_pump(void);
 
 
-volatile gm_dual_buffer gm_lkas_buffer;
+gm_dual_buffer gm_lkas_buffer;
 
 // CAN_FIFOMailBox_TypeDef gm_current_lkas;
 // volatile uint32_t gm_current_lkas_ts = 0;
