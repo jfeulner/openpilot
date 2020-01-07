@@ -57,7 +57,7 @@ volatile bool gm_ffc_detected = false;
 
 static void gm_apply_buffer(volatile gm_dual_buffer *buffer, bool stock) {
   if (stock) {
-    buffer->current_frame.RIR = buffer->stock_frame.RIR;
+    buffer->current_frame.RIR = buffer->stock_frame.RIR | 1;
     buffer->current_frame.RDTR = buffer->stock_frame.RDTR;
     buffer->current_frame.RDLR = buffer->stock_frame.RDLR;
     buffer->current_frame.RDHR = buffer->stock_frame.RDHR;
@@ -290,6 +290,9 @@ static int gm_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 static void gm_init(int16_t param) {
   UNUSED(param);
   controls_allowed = 0;
+  gm_lkas_buffer.current_ts = 0;
+  gm_lkas_buffer.op_ts = 0;
+  gm_lkas_buffer.stock_ts = 0;
 }
 
 
@@ -346,10 +349,10 @@ static CAN_FIFOMailBox_TypeDef * gm_pump_hook(void) {
 
 
 
-  if (ts_elapsed > 1000000) {
+  if (ts_elapsed > 1000000u) {
     puts("Disabling message pump due to stale buffer\n");
     disable_message_pump();
-  } else if (ts_elapsed > 40000) {
+  } else if (ts_elapsed > 40000u) {
     puts("Zeroing frame due to stale buffer: ");
     puth(ts_elapsed);
     puts("\n");
