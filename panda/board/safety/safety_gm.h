@@ -9,13 +9,13 @@
 //      brake > 0mph
 
 typedef struct {
-  uint32_t current_ts;
-  CAN_FIFOMailBox_TypeDef current_frame;
-  uint32_t stock_ts;
-  CAN_FIFOMailBox_TypeDef stock_frame;
-  uint32_t op_ts;
-  CAN_FIFOMailBox_TypeDef op_frame;
-  uint32_t rolling_counter;
+  volatile uint32_t current_ts;
+  volatile CAN_FIFOMailBox_TypeDef current_frame;
+  volatile uint32_t stock_ts;
+  volatile CAN_FIFOMailBox_TypeDef stock_frame;
+  volatile uint32_t op_ts;
+  volatile CAN_FIFOMailBox_TypeDef op_frame;
+  volatile uint32_t rolling_counter;
 } gm_dual_buffer;
 
 const int GM_MAX_STEER = 300;
