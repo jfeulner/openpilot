@@ -363,6 +363,8 @@ void ignition_can_hook(CAN_FIFOMailBox_TypeDef *to_push) {
      ignition_can  = (GET_BYTE(to_push, 2) & 0x2) != 0;
     }
   }
+  //TODO: remove this - for testing only
+  ignition_can = true;
 }
 
 // CAN receive handlers
