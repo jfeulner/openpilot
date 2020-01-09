@@ -364,7 +364,7 @@ void ignition_can_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     }
   }
   //TODO: remove this - for testing only
-  ignition_can = true;
+  //ignition_can = true;
 }
 
 // CAN receive handlers
