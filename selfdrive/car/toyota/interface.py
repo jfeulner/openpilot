@@ -369,18 +369,18 @@ class CarInterface(CarInterfaceBase):
     # events
     events = []
 
-    # if self.cp_cam.can_invalid_cnt >= 100 and self.CP.enableCamera:
-    #   events.append(create_event('invalidGiraffeToyota', [ET.PERMANENT, ET.NO_ENTRY]))
+    if self.cp_cam.can_invalid_cnt >= 100 and self.CP.enableCamera:
+      events.append(create_event('invalidGiraffeToyota', [ET.PERMANENT, ET.NO_ENTRY]))
     if not ret.gearShifter == GearShifter.drive and self.CP.enableDsu:
       events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if ret.doorOpen:
       events.append(create_event('doorOpen', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if ret.seatbeltUnlatched:
       events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    # if self.CS.esp_disabled and self.CP.enableDsu:
-    #   events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    # if not self.CS.main_on and self.CP.enableDsu:
-    #   events.append(create_event('wrongCarMode', [ET.NO_ENTRY, ET.USER_DISABLE]))
+    if self.CS.esp_disabled and self.CP.enableDsu:
+      events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+    if not self.CS.main_on and self.CP.enableDsu:
+      events.append(create_event('wrongCarMode', [ET.NO_ENTRY, ET.USER_DISABLE]))
     if ret.gearShifter == GearShifter.reverse and self.CP.enableDsu:
       events.append(create_event('reverseGear', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
     if self.CS.steer_error:
