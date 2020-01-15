@@ -4,7 +4,7 @@ from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.car.gm.values import DBC, CAR, ECU, ECU_FINGERPRINT, \
-                                    SUPERCRUISE_CARS, AccState, FINGERPRINTS
+                                    SUPERCRUISE_CARS, NO_ASCM_CARS, AccState, FINGERPRINTS
 from selfdrive.car.gm.carstate import CarState, CruiseButtons, get_powertrain_can_parser
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
@@ -72,6 +72,16 @@ class CarInterface(CarInterfaceBase):
       ret.safetyModel = car.CarParams.SafetyModel.gm
       ret.wheelbase = 2.69
       ret.steerRatio = 15.7
+      ret.steerRatioRear = 0.
+      ret.centerToFront = ret.wheelbase * 0.4 # wild guess
+
+    elif candidate == CAR.BOLT:
+      # initial engage unkown - copied from Volt. Stop and go unknown.
+      ret.minEnableSpeed = 18 * CV.MPH_TO_MS
+      ret.mass = 1616. + STD_CARGO_KG
+      ret.safetyModel = car.CarParams.SafetyModel.gm
+      ret.wheelbase = 2.60096
+      ret.steerRatio = 16.8
       ret.steerRatioRear = 0.
       ret.centerToFront = ret.wheelbase * 0.4 # wild guess
 
@@ -299,8 +309,9 @@ class CarInterface(CarInterfaceBase):
         events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
       if ret.cruiseState.standstill:
         events.append(create_event('resumeRequired', [ET.WARNING]))
-      if self.CS.pcm_acc_status == AccState.FAULTED:
-        events.append(create_event('controlsFailed', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+      if not self.CS.car_fingerprint in NO_ASCM_CARS:
+        if self.CS.pcm_acc_status == AccState.FAULTED:
+          events.append(create_event('controlsFailed', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
 
       # handle button presses
       for b in ret.buttonEvents:
