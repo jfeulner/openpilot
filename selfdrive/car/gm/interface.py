@@ -5,7 +5,7 @@ from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.car.gm.values import DBC, CAR, ECU, ECU_FINGERPRINT, \
-                                    SUPERCRUISE_CARS, AccState, FINGERPRINTS
+                                    SUPERCRUISE_CARS, NO_ASCM_CARS, AccState, FINGERPRINTS
 from selfdrive.car.gm.carstate import CarState, CruiseButtons, get_powertrain_can_parser, get_chassis_can_parser
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
@@ -113,8 +113,8 @@ class CarInterface(CarInterfaceBase):
 
     # same tuning for Volt and CT6 for now
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-    ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2], [0.00]]
-    ret.lateralTuning.pid.kf = 0.00004   # full torque for 20 deg at 80mph means 0.00007818594
+    ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.01]]
+    ret.lateralTuning.pid.kf = 0.000045   # full torque for 20 deg at 80mph means 0.00007818594
     ret.steerRateCost = 1.0
 
     if candidate == CAR.VOLT:
@@ -128,6 +128,15 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.4 # wild guess
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.12], [0.05]]
       ret.steerRateCost = 0.7
+    elif candidate == CAR.BOLT:
+      # initial engage unkown - copied from Volt. Stop and go unknown.
+      ret.minEnableSpeed = 25 * CV.MPH_TO_MS
+      ret.mass = 1616. + STD_CARGO_KG
+      ret.safetyModel = car.CarParams.SafetyModel.gm
+      ret.wheelbase = 2.60096
+      ret.steerRatio = 16.8
+      ret.steerRatioRear = 0.
+      ret.centerToFront = ret.wheelbase * 0.4 # wild guess                                                       
 
     elif candidate == CAR.MALIBU:
       # supports stop and go, but initial engage must be above 18mph (which include conservatism)
@@ -365,6 +374,7 @@ class CarInterface(CarInterfaceBase):
         events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
       if ret.cruiseState.standstill:
         events.append(create_event('resumeRequired', [ET.WARNING]))
+      if not self.CS.car_fingerprint in NO_ASCM_CARS:
       if self.CS.pcm_acc_status == AccState.FAULTED:
         events.append(create_event('controlsFailed', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
 
