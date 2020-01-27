@@ -114,7 +114,7 @@ class CarInterface(CarInterfaceBase):
     # same tuning for Volt and CT6 for now
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
     ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.01]]
-    ret.lateralTuning.pid.kf = 0.000045   # full torque for 20 deg at 80mph means 0.00007818594
+    ret.lateralTuning.pid.kf = 0.00004   # full torque for 20 deg at 80mph means 0.00007818594
     ret.steerRateCost = 1.0
 
     if candidate == CAR.VOLT:
