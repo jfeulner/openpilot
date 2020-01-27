@@ -347,7 +347,7 @@ void ignition_can_hook(CAN_FIFOMailBox_TypeDef *to_push) {
       // this message isn't all zeros when ignition is on
       ignition_can = GET_BYTES_04(to_push) != 0;
     }
-  
+  } 
 }
 
 // CAN receive handlers
