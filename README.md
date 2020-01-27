@@ -1,3 +1,4 @@
+Bolt EV Modified - Stock 0.7 - Lane Change - Tuning by @kishkaru - Bolt EV Origin port @JasonJShuler (His hard work made Bolt EV possible)
 [![](https://i.imgur.com/UetIFyH.jpg)](#)
 
 Table of Contents
@@ -22,7 +23,7 @@ Table of Contents
 ---
 
 
-Bolt EV Modified - Stock 0.7 - Lane Change - Tuning by @kishkaru - Bolt EV Origin port @JasonJShuler (His hard work made Bolt EV possible)
+
 
 What is openpilot?
 ------
