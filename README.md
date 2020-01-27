@@ -1,8 +1,8 @@
-**BOLT EV SUPPORT BY @JASONJSHULER | TUNING BY @KISHKARU | Porting to Kegman for Bolt EV 2017+ Driver Confidence II | **
+**BOLT EV SUPPORT BY @JASONJSHULER | TUNING BY @KISHKARU | Porting to Kegman for Bolt EV 2017+ Driver Confidence II **
 
-<b>Openpilot Build Status:</b> *Failing*
+<b>Openpilot Build Status:</b> *Validated*
 
-<b>Panda Flash Build Status:</b> *Untested*
+<b>Panda Flash Build Status:</b> *Successful*
 
 <b>Engagement & Drive Test:</b> *Untested*
 
