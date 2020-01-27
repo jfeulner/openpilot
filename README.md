@@ -1,7 +1,11 @@
 **BOLT EV SUPPORT BY @JASONJSHULER | TUNING BY @KISHKARU | Porting to Kegman for Bolt EV 2017+ Driver Confidence II | **
-Openpilot Build Status: *Failing*
-Panda Flash Build Status *Untested*
-Engagement & Drive Test: *Untested*
+
+<b>Openpilot Build Status:</b> *Failing*
+
+<b>Panda Flash Build Status:</b> *Untested*
+
+<b>Engagement & Drive Test:</b> *Untested*
+
 
 ** REFLASH PANDA AS I HAVE RE-INSTATED STOCK HONDA FCW AFTER COMMA'S FIX ON kegman-0.7 **
 
