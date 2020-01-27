@@ -4,7 +4,7 @@
 
 <b>Panda Flash Build Status:</b> *Successful*
 
-<b>Engagement & Drive Test:</b> *Untested*
+<b>Engagement & Drive Test:</b> *FAILED* - Engages OP, no active steering
 
 
 ** REFLASH PANDA AS I HAVE RE-INSTATED STOCK HONDA FCW AFTER COMMA'S FIX ON kegman-0.7 **
