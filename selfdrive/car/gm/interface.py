@@ -375,7 +375,7 @@ class CarInterface(CarInterfaceBase):
       if ret.cruiseState.standstill:
         events.append(create_event('resumeRequired', [ET.WARNING]))
       if not self.CS.car_fingerprint in NO_ASCM_CARS:
-      if self.CS.pcm_acc_status == AccState.FAULTED:
+        if self.CS.pcm_acc_status == AccState.FAULTED:
         events.append(create_event('controlsFailed', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
 
       # handle button presses
