@@ -152,7 +152,7 @@ class CarController():
 
       if not self.car_fingerprint in NO_ASCM_CARS:
       # Gas/regen and brakes - all at 25Hz
-      if (frame % 4) == 0:
+        if (frame % 4) == 0:
         idx = (frame // 4) % 4
 
         car_stopping = apply_gas < P.ZERO_GAS
