@@ -1,3 +1,8 @@
+**BOLT EV SUPPORT BY @JASONJSHULER | TUNING BY @KISHKARU | Porting to Kegman for Bolt EV 2017+ Driver Confidence II | **
+Openpilot Build Status: *Untested*
+Panda Flash Build Status *Untested*
+Engagement & Drive Test: *Untested*
+
 ** REFLASH PANDA AS I HAVE RE-INSTATED STOCK HONDA FCW AFTER COMMA'S FIX ON kegman-0.7 **
 
 This is a fork of comma's openpilot: https://github.com/commaai/openpilot, and contains tweaks for Hondas and GM vehicles.  It is open source and inherits MIT license.  By installing this software you accept all responsibility for anything that might occur while you use it.  All contributors to this fork are not liable.  <b>Use at your own risk.</b>
